@@ -6,7 +6,7 @@ import type { Echo } from './types';
 import shorekeeperImg from './assets/shorekeeper.png'; 
 
 function App() {
-  const [echo, setEcho] = useState<Echo>({
+  const [echo, _setEcho] = useState<Echo>({
     cost: 1,
     mainStat: 'ATK',
     subStats: [
