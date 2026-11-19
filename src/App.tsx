@@ -2,9 +2,10 @@ import { useState } from 'react';
 import { charactersData } from './data';
 import { calculateEchoScore } from './scoring';
 import type { Echo } from './types';
+// Import the image here
+import shorekeeperImg from './assets/shorekeeper.png'; 
 
 function App() {
-  // Hardcoding 1 echo for now to see the UI
   const [echo, setEcho] = useState<Echo>({
     cost: 1,
     mainStat: 'ATK',
@@ -26,19 +27,27 @@ function App() {
 
       <main className="max-w-2xl mx-auto space-y-6">
         {/* Character Info */}
-        <div className="bg-slate-800 p-4 rounded-lg border border-slate-700 flex justify-between items-center">
-          <div>
-            <h2 className="text-xl font-bold text-white">{shorekeeper.name}</h2>
-            <p className="text-sm text-indigo-400">{shorekeeper.element}</p>
+        <div className="bg-slate-800 p-4 rounded-lg border border-slate-700 flex justify-between items-center shadow-lg">
+          <div className="flex items-center gap-4">
+            {/* Added the image here */}
+            <img 
+              src={shorekeeperImg} 
+              alt="Shorekeeper" 
+              className="w-20 h-20 object-cover object-top rounded-full border-2 border-indigo-500 bg-slate-900"
+            />
+            <div>
+              <h2 className="text-xl font-bold text-white">{shorekeeper.name}</h2>
+              <p className="text-sm text-indigo-400">{shorekeeper.element}</p>
+            </div>
           </div>
-          <div className="text-right">
+          <div className="text-right pr-2">
             <p className="text-sm text-slate-400">Echo Score</p>
-            <p className="text-2xl font-bold text-green-400">{currentScore.toFixed(2)}</p>
+            <p className="text-3xl font-bold text-green-400">{currentScore.toFixed(2)}</p>
           </div>
         </div>
 
         {/* Echo Card (Read-only for now) */}
-        <div className="bg-slate-800 p-6 rounded-lg border border-slate-700">
+        <div className="bg-slate-800 p-6 rounded-lg border border-slate-700 shadow-lg">
           <div className="flex justify-between items-center mb-4">
             <span className="bg-amber-900 text-amber-200 px-3 py-1 rounded text-sm font-bold">
               Cost {echo.cost}
