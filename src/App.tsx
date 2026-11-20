@@ -4,6 +4,7 @@ import { calculateEchoScore } from './scoring';
 import type { Echo, StatType, SubStat } from './types';
 import shorekeeperIcon from './assets/shorekeeper-icon.png'; 
 import { sonataData } from './sonataData';
+import { echoDatabase } from './echoData';
 
 // A list of all stats for the dropdowns
 const ALL_STATS: StatType[] = [
@@ -15,6 +16,7 @@ const ALL_STATS: StatType[] = [
 
 function App() {
   const [echo, setEcho] = useState<Echo>({
+    echoId: 'cruisewing', // Default to Cruisewing
     cost: 1,
     setId: 'rejuvenating-glow',
     mainStat: 'ATK',
@@ -27,6 +29,9 @@ function App() {
 
   const shorekeeper = charactersData[0];
   const currentScore = calculateEchoScore(echo, shorekeeper.weights);
+
+  // Filter echoes by the current cost
+  const availableEchoes = echoDatabase.filter(e => e.cost === echo.cost);
 
   const handleMainStatChange = (newStat: StatType) => {
     setEcho({ ...echo, mainStat: newStat });
@@ -68,8 +73,22 @@ function App() {
         {/* Interactive Echo Card */}
         <div className="bg-slate-800 p-4 md:p-6 rounded-lg border border-slate-700 shadow-lg space-y-4 md:space-y-6">
           
+          {/* Echo Selection */}
+          <div>
+            <label className="text-xs md:text-sm text-slate-400 font-bold uppercase tracking-wider block mb-2">Echo</label>
+            <select 
+              value={echo.echoId}
+              onChange={(e) => setEcho({ ...echo, echoId: e.target.value })}
+              className="w-full bg-slate-700 text-white font-bold text-base md:text-lg rounded p-2 outline-none focus:ring-2 focus:ring-indigo-500 cursor-pointer"
+            >
+              {availableEchoes.map(e => (
+                <option key={e.id} value={e.id}>{e.name}</option>
+              ))}
+            </select>
+          </div>
+
           {/* Cost & Main Stat Row */}
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-0">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-0 pt-4 border-t border-slate-700">
             <span className="bg-amber-900 text-amber-200 px-3 py-1 rounded text-sm font-bold">
               Cost {echo.cost}
             </span>

@@ -10,8 +10,9 @@ export interface SubStat {
 }
 
 export interface Echo {
+  echoId: string; // <-- Added this to link to the database
   cost: 1 | 3 | 4;
-  setId: string; // Required for the Sonata Effect
+  setId: string;
   mainStat: StatType;
   subStats: SubStat[];
 }
