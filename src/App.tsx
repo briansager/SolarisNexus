@@ -1,16 +1,22 @@
 import { useState } from 'react';
 import { charactersData } from './data';
 import { calculateEchoScore } from './scoring';
-import type { Echo } from './types';
-// Import the image here
+import type { Echo, StatType, SubStat } from './types';
 import shorekeeperImg from './assets/shorekeeper.png'; 
-// Add this import at the top
 import { sonataData } from './sonataData';
 
-// ... inside the App function, update the initial state:
+// A list of all stats for the dropdowns
+const ALL_STATS: StatType[] = [
+  'ATK', 'ATK%', 'HP', 'HP%', 'DEF', 'DEF%',
+  'Crit Rate', 'Crit DMG', 'Energy Regen', 'Healing Bonus',
+  'Aero DMG Bonus', 'Glacio DMG Bonus', 'Fusion DMG Bonus', 'Electro DMG Bonus', 'Spectro DMG Bonus', 'Havoc DMG Bonus',
+  'Basic Attack DMG Bonus', 'Heavy Attack DMG Bonus', 'Resonance Skill DMG Bonus', 'Resonance Liberation DMG Bonus'
+];
+
+function App() {
   const [echo, setEcho] = useState<Echo>({
     cost: 1,
-    setId: 'rejuvenating-glow', // Default set
+    setId: 'rejuvenating-glow',
     mainStat: 'ATK',
     subStats: [
       { type: 'Energy Regen', value: 0 },
@@ -19,7 +25,66 @@ import { sonataData } from './sonataData';
     ]
   });
 
-// ... inside the JSX, add this dropdown right after the Main Stat Row:
+  const shorekeeper = charactersData[0];
+  const currentScore = calculateEchoScore(echo, shorekeeper.weights);
+
+  const handleMainStatChange = (newStat: StatType) => {
+    setEcho({ ...echo, mainStat: newStat });
+  };
+
+  const handleSubStatChange = (index: number, field: keyof SubStat, newValue: string | number) => {
+    const newSubStats = [...echo.subStats];
+    newSubStats[index] = { ...newSubStats[index], [field]: newValue };
+    setEcho({ ...echo, subStats: newSubStats });
+  };
+
+  return (
+    <div className="min-h-screen bg-slate-900 text-slate-200 p-8 font-sans">
+      <header className="mb-8 border-b border-slate-700 pb-4">
+        <h1 className="text-3xl font-bold text-white tracking-wide">WuWa Build Tracker</h1>
+      </header>
+
+      <main className="max-w-2xl mx-auto space-y-6">
+        
+        {/* Character Info */}
+        <div className="bg-slate-800 p-4 rounded-lg border border-slate-700 flex justify-between items-center shadow-lg">
+          <div className="flex items-center gap-4">
+            <img 
+              src={shorekeeperImg} 
+              alt="Shorekeeper" 
+              className="w-20 h-20 object-cover object-top rounded-full border-2 border-indigo-500 bg-slate-900"
+            />
+            <div>
+              <h2 className="text-xl font-bold text-white">{shorekeeper.name}</h2>
+              <p className="text-sm text-indigo-400">{shorekeeper.element}</p>
+            </div>
+          </div>
+          <div className="text-right pr-2">
+            <p className="text-sm text-slate-400">Total Echo Score</p>
+            <p className="text-3xl font-bold text-green-400">{currentScore.toFixed(2)}</p>
+          </div>
+        </div>
+
+        {/* Interactive Echo Card */}
+        <div className="bg-slate-800 p-6 rounded-lg border border-slate-700 shadow-lg space-y-6">
+          
+          {/* Cost & Main Stat Row */}
+          <div className="flex justify-between items-center">
+            <span className="bg-amber-900 text-amber-200 px-3 py-1 rounded text-sm font-bold">
+              Cost {echo.cost}
+            </span>
+            
+            <select 
+              value={echo.mainStat}
+              onChange={(e) => handleMainStatChange(e.target.value as StatType)}
+              className="bg-slate-700 text-white font-bold text-lg rounded p-2 outline-none focus:ring-2 focus:ring-indigo-500 cursor-pointer"
+            >
+              {ALL_STATS.map(stat => (
+                <option key={stat} value={stat}>{stat}</option>
+              ))}
+            </select>
+          </div>
+
           {/* Set Selection */}
           <div className="pt-4 border-t border-slate-700">
             <label className="text-sm text-slate-400 font-bold uppercase tracking-wider block mb-2">Sonata Effect</label>
@@ -34,61 +99,31 @@ import { sonataData } from './sonataData';
             </select>
           </div>
           
-function App() {
-  const [echo, _setEcho] = useState<Echo>({
-    cost: 1,
-    mainStat: 'ATK',
-    subStats: [
-      { type: 'Energy Regen', value: 10.8 },
-      { type: 'HP%', value: 8.6 },
-      { type: 'Crit DMG', value: 12.6 },
-    ]
-  });
-
-  const shorekeeper = charactersData[0];
-  const currentScore = calculateEchoScore(echo, shorekeeper.weights);
-
-  return (
-    <div className="min-h-screen bg-slate-900 text-slate-200 p-8 font-sans">
-      <header className="mb-8 border-b border-slate-700 pb-4">
-        <h1 className="text-3xl font-bold text-white tracking-wide">WuWa Build Tracker</h1>
-      </header>
-
-      <main className="max-w-2xl mx-auto space-y-6">
-        {/* Character Info */}
-        <div className="bg-slate-800 p-4 rounded-lg border border-slate-700 flex justify-between items-center shadow-lg">
-          <div className="flex items-center gap-4">
-            {/* Added the image here */}
-            <img 
-              src={shorekeeperImg} 
-              alt="Shorekeeper" 
-              className="w-20 h-20 object-cover object-top rounded-full border-2 border-indigo-500 bg-slate-900"
-            />
-            <div>
-              <h2 className="text-xl font-bold text-white">{shorekeeper.name}</h2>
-              <p className="text-sm text-indigo-400">{shorekeeper.element}</p>
-            </div>
-          </div>
-          <div className="text-right pr-2">
-            <p className="text-sm text-slate-400">Echo Score</p>
-            <p className="text-3xl font-bold text-green-400">{currentScore.toFixed(2)}</p>
-          </div>
-        </div>
-
-        {/* Echo Card (Read-only for now) */}
-        <div className="bg-slate-800 p-6 rounded-lg border border-slate-700 shadow-lg">
-          <div className="flex justify-between items-center mb-4">
-            <span className="bg-amber-900 text-amber-200 px-3 py-1 rounded text-sm font-bold">
-              Cost {echo.cost}
-            </span>
-            <span className="font-bold text-white text-lg">{echo.mainStat}</span>
-          </div>
-          
-          <div className="space-y-2">
+          {/* Sub Stats List */}
+          <div className="space-y-3 pt-4 border-t border-slate-700">
+            <p className="text-sm text-slate-400 font-bold uppercase tracking-wider mb-2">Sub Stats</p>
+            
             {echo.subStats.map((stat, i) => (
-              <div key={i} className="flex justify-between text-sm bg-slate-700/50 p-2 rounded">
-                <span className="text-slate-300">{stat.type}</span>
-                <span className="font-mono text-white">{stat.value}%</span>
+              <div key={i} className="flex gap-2 items-center">
+                {/* Stat Type Dropdown */}
+                <select 
+                  value={stat.type}
+                  onChange={(e) => handleSubStatChange(i, 'type', e.target.value)}
+                  className="flex-1 bg-slate-700 text-sm p-2 rounded outline-none focus:ring-2 focus:ring-indigo-500 cursor-pointer text-slate-200"
+                >
+                  {ALL_STATS.map(s => (
+                    <option key={s} value={s}>{s}</option>
+                  ))}
+                </select>
+
+                {/* Number Input */}
+                <input 
+                  type="number" 
+                  step="0.1"
+                  value={stat.value}
+                  onChange={(e) => handleSubStatChange(i, 'value', parseFloat(e.target.value) || 0)}
+                  className="w-24 bg-slate-700 text-sm p-2 rounded outline-none focus:ring-2 focus:ring-indigo-500 text-white font-mono text-right"
+                />
               </div>
             ))}
           </div>
