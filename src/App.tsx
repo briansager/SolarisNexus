@@ -5,7 +5,7 @@ import type { Echo } from './types';
 import { sonataData } from './sonataData';
 import { echoDatabase } from './echoData';
 import EchoCard from './components/EchoCard';
-import HoverSelect from './components/HoverSelect'; // Import the new component
+import HoverSelect from './components/HoverSelect';
 
 const icons = import.meta.glob('./assets/*-icon.{png,jpg,jpeg,webp}', { eager: true, import: 'default' });
 const defaultIcon = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%231e293b'/%3E%3Ctext x='50' y='50' font-family='sans-serif' font-size='40' fill='%2364748b' text-anchor='middle' dominant-baseline='middle'%3E?%3C/text%3E%3C/svg%3E";
@@ -50,7 +50,6 @@ function App() {
     setEchoes(newEchoes);
   };
 
-  // Format character data for the HoverSelect
   const characterOptions = charactersData.map(char => ({
     value: char.id,
     label: `${char.name} (${char.element})`
@@ -59,16 +58,19 @@ function App() {
   return (
     <div className="min-h-screen bg-slate-900 text-slate-200 p-4 md:p-6 font-sans selection:bg-indigo-500/30">
       
-      {/* NEW: Centered Top Title */}
-      <div className="text-center mb-8 pt-4">
+      {/* Centered Top Title & Badge */}
+      <div className="text-center mb-8 pt-4 flex flex-col items-center justify-center gap-2">
         <h1 className="text-3xl md:text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-cyan-400 tracking-tight drop-shadow-sm">
           Wuthering Waves Build Tracker
         </h1>
+        <span className="bg-amber-900/40 text-amber-200 text-xs px-3 py-1 rounded-full border border-amber-700/50 shadow-sm">
+          🚧 Work in Progress
+        </span>
       </div>
 
       <header className="mb-6 max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-start md:items-center border-b border-slate-700/50 pb-4 gap-4">
         
-        {/* Character Selector Dropdown (Now using HoverSelect) */}
+        {/* Character Selector Dropdown */}
         <div className="flex items-center gap-4 w-full md:w-auto">
           <img 
             src={currentIcon} 
