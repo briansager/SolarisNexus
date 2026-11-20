@@ -1,8 +1,7 @@
-import type { Echo, StatType, SubStat } from '../types';
+import type { Echo, StatType, SubStat, Character } from '../types';
 import { echoDatabase } from '../echoData';
 import { sonataData } from '../sonataData';
 import { calculateEchoScore } from '../scoring';
-import { charactersData } from '../data';
 
 const ALL_STATS: StatType[] = [
   'ATK', 'ATK%', 'HP', 'HP%', 'DEF', 'DEF%',
@@ -16,12 +15,12 @@ const COST_1_MAIN_STATS: StatType[] = ['ATK', 'HP', 'DEF'];
 interface EchoCardProps {
   echo: Echo;
   index: number;
+  character: Character; // NEW: Pass character down
   onChange: (index: number, newEcho: Echo) => void;
 }
 
-export default function EchoCard({ echo, index, onChange }: EchoCardProps) {
-  const shorekeeper = charactersData[0];
-  const currentScore = calculateEchoScore(echo, shorekeeper.weights);
+export default function EchoCard({ echo, index, character, onChange }: EchoCardProps) {
+  const currentScore = calculateEchoScore(echo, character.weights);
 
   const availableEchoes = echoDatabase.filter(e => e.cost === echo.cost);
   const selectedEchoData = echoDatabase.find(e => e.id === echo.echoId);
@@ -102,7 +101,6 @@ export default function EchoCard({ echo, index, onChange }: EchoCardProps) {
           </div>
         </div>
 
-        {/* Main Stats Row */}
         <div className="flex gap-4">
           <div className="flex-1">
             <label className="text-[10px] text-slate-500 font-bold uppercase tracking-widest block mb-1">Main Stat</label>
@@ -115,7 +113,6 @@ export default function EchoCard({ echo, index, onChange }: EchoCardProps) {
             </select>
           </div>
           
-          {/* Fixed ATK for Cost 3 & 4 */}
           {echo.cost !== 1 && (
             <div className="w-1/3">
               <label className="text-[10px] text-slate-500 font-bold uppercase tracking-widest block mb-1">Base ATK</label>

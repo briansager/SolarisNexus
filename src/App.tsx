@@ -27,9 +27,14 @@ const initialEchoes: Echo[] = [
 function App() {
   const [echoes, setEchoes] = useState<Echo[]>(initialEchoes);
   const [selectedIndex, setSelectedIndex] = useState<number>(0);
+  
+  // Track the selected character
+  const [selectedCharId, setSelectedCharId] = useState<string>('shorekeeper');
 
-  const shorekeeper = charactersData[0];
-  const totalScore = calculateBuildScore(echoes, shorekeeper.weights);
+  // Find the character object based on the ID
+  const currentCharacter = charactersData.find(c => c.id === selectedCharId) || charactersData[0];
+
+  const totalScore = calculateBuildScore(echoes, currentCharacter.weights);
   const activeSets = getActiveSonataSets(echoes);
   const tier = getScoreTier(totalScore);
 
@@ -42,16 +47,33 @@ function App() {
   return (
     <div className="min-h-screen bg-slate-900 text-slate-200 p-4 md:p-6 font-sans selection:bg-indigo-500/30">
       
-      <header className="mb-6 flex flex-col md:flex-row justify-between items-center border-b border-slate-700/50 pb-4">
-        <div className="flex items-center gap-4">
-          <img src={shorekeeperIcon} alt="Shorekeeper" className="w-12 h-12 object-cover rounded-full border-2 border-slate-600 bg-slate-800" />
-          <div>
-            <h1 className="text-xl font-bold text-white tracking-wide">{shorekeeper.name}</h1>
-            <p className="text-xs text-slate-400">{shorekeeper.element} • WuWa Build Tracker</p>
+      <header className="mb-6 flex flex-col md:flex-row justify-between items-start md:items-center border-b border-slate-700/50 pb-4 gap-4">
+        
+        {/* Character Selector Dropdown */}
+        <div className="flex items-center gap-4 w-full md:w-auto">
+          <img 
+            src={shorekeeperIcon} 
+            alt={currentCharacter.name} 
+            className="w-12 h-12 object-cover rounded-full border-2 border-slate-600 bg-slate-800" 
+          />
+          <div className="flex-1">
+            <select
+              value={selectedCharId}
+              onChange={(e) => setSelectedCharId(e.target.value)}
+              className="bg-slate-800 text-lg font-bold text-white rounded-md p-2 border border-slate-600 outline-none focus:border-indigo-400 cursor-pointer w-full"
+            >
+              {charactersData.map(char => (
+                <option key={char.id} value={char.id}>{char.name} ({char.element})</option>
+              ))}
+            </select>
+            <p className="text-xs text-slate-400 mt-1">
+              {currentCharacter.recommendedSets} • {currentCharacter.mainStat4}
+            </p>
           </div>
         </div>
         
-        <div className="mt-4 md:mt-0 flex gap-4">
+        {/* Score & Grade Panel */}
+        <div className="flex gap-4 w-full md:w-auto justify-end">
           <div className="bg-slate-800 px-6 py-2 rounded-full border border-slate-700 flex items-center gap-4">
             <span className="text-sm text-slate-400">Grade</span>
             <span className={`text-2xl font-bold ${tier.color}`}>{tier.label}</span>
@@ -65,6 +87,7 @@ function App() {
 
       <main className="max-w-5xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-6">
         
+        {/* Left Sidebar - Echo Slots */}
         <div className="lg:col-span-4 flex flex-col gap-3">
           <h2 className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-2 px-2">Equipped Echoes</h2>
           
@@ -93,6 +116,7 @@ function App() {
             );
           })}
 
+          {/* Active Sets Panel */}
           <div className="mt-4 p-4 rounded-lg bg-slate-800/30 border border-slate-700/30">
             <h3 className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-3">Active Sonata Sets</h3>
             <div className="flex flex-col gap-2">
@@ -111,8 +135,14 @@ function App() {
           </div>
         </div>
 
+        {/* Right Detail Panel - EchoCard */}
         <div className="lg:col-span-8">
-          <EchoCard echo={echoes[selectedIndex]} index={selectedIndex} onChange={handleEchoChange} />
+          <EchoCard 
+            echo={echoes[selectedIndex]} 
+            index={selectedIndex} 
+            character={currentCharacter}
+            onChange={handleEchoChange} 
+          />
         </div>
       </main>
     </div>
