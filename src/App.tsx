@@ -41,6 +41,21 @@ function App() {
     selectedEchoData?.sonataSets.includes(set.id)
   );
 
+  // Handler for changing Cost (1, 3, 4)
+  const handleCostChange = (newCost: 1 | 3 | 4) => {
+    // Find the first echo available for this new cost
+    const firstEchoOfCost = echoDatabase.find(e => e.cost === newCost);
+    
+    if (firstEchoOfCost) {
+      setEcho({
+        ...echo,
+        cost: newCost,
+        echoId: firstEchoOfCost.id,
+        setId: firstEchoOfCost.sonataSets[0] || ''
+      });
+    }
+  };
+
   const handleEchoChange = (newEchoId: string) => {
     const newEchoData = echoDatabase.find(e => e.id === newEchoId);
     // Automatically switch to the first valid set for the new echo
@@ -109,9 +124,17 @@ function App() {
 
           {/* Cost & Main Stat Row */}
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-0 pt-4 border-t border-slate-700">
-            <span className="bg-amber-900 text-amber-200 px-3 py-1 rounded text-sm font-bold">
-              Cost {echo.cost}
-            </span>
+            
+            {/* NEW COST SELECTOR */}
+            <select
+              value={echo.cost}
+              onChange={(e) => handleCostChange(Number(e.target.value) as 1 | 3 | 4)}
+              className="bg-amber-900 text-amber-200 px-3 py-1 rounded text-sm font-bold outline-none cursor-pointer focus:ring-2 focus:ring-amber-500"
+            >
+              <option value={1}>Cost 1</option>
+              <option value={3}>Cost 3</option>
+              <option value={4}>Cost 4</option>
+            </select>
             
             <select 
               value={echo.mainStat}
