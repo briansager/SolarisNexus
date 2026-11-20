@@ -1,5 +1,3 @@
-import type { Echo } from './types';
-
 // A simplified type for our database
 export type EchoTemplate = {
   id: string;
