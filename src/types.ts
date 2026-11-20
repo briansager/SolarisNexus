@@ -34,4 +34,5 @@ export interface SonataSet {
   twoPiece: string;
   fivePiece: string;
   threePiece?: string;
+  onePiece?: string;
 }
