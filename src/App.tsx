@@ -4,7 +4,36 @@ import { calculateEchoScore } from './scoring';
 import type { Echo } from './types';
 // Import the image here
 import shorekeeperImg from './assets/shorekeeper.png'; 
+// Add this import at the top
+import { sonataData } from './sonataData';
 
+// ... inside the App function, update the initial state:
+  const [echo, setEcho] = useState<Echo>({
+    cost: 1,
+    setId: 'rejuvenating-glow', // Default set
+    mainStat: 'ATK',
+    subStats: [
+      { type: 'Energy Regen', value: 0 },
+      { type: 'HP%', value: 0 },
+      { type: 'Crit DMG', value: 0 },
+    ]
+  });
+
+// ... inside the JSX, add this dropdown right after the Main Stat Row:
+          {/* Set Selection */}
+          <div className="pt-4 border-t border-slate-700">
+            <label className="text-sm text-slate-400 font-bold uppercase tracking-wider block mb-2">Sonata Effect</label>
+            <select 
+              value={echo.setId}
+              onChange={(e) => setEcho({ ...echo, setId: e.target.value })}
+              className="w-full bg-slate-700 text-sm p-2 rounded outline-none focus:ring-2 focus:ring-indigo-500 cursor-pointer text-slate-200"
+            >
+              {sonataData.map(set => (
+                <option key={set.id} value={set.id}>{set.name}</option>
+              ))}
+            </select>
+          </div>
+          
 function App() {
   const [echo, _setEcho] = useState<Echo>({
     cost: 1,
