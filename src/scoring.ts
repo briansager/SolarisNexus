@@ -1,4 +1,4 @@
-import type { Echo, StatWeights, SonataSet } from './types';
+import type { Echo, StatWeights } from './types';
 
 export function calculateEchoScore(echo: Echo, weights: StatWeights): number {
   return echo.subStats.reduce((total, subStat) => {
