@@ -11,6 +11,8 @@ const ALL_STATS: StatType[] = [
   'Basic Attack DMG Bonus', 'Heavy Attack DMG Bonus', 'Resonance Skill DMG Bonus', 'Resonance Liberation DMG Bonus'
 ];
 
+const COST_1_MAIN_STATS: StatType[] = ['ATK', 'HP', 'DEF'];
+
 interface EchoCardProps {
   echo: Echo;
   index: number;
@@ -28,7 +30,14 @@ export default function EchoCard({ echo, index, onChange }: EchoCardProps) {
   const handleCostChange = (newCost: 1 | 3 | 4) => {
     const firstEchoOfCost = echoDatabase.find(e => e.cost === newCost);
     if (firstEchoOfCost) {
-      onChange(index, { ...echo, cost: newCost, echoId: firstEchoOfCost.id, setId: firstEchoOfCost.sonataSets[0] || '' });
+      onChange(index, { 
+        ...echo, 
+        cost: newCost, 
+        echoId: firstEchoOfCost.id, 
+        setId: firstEchoOfCost.sonataSets[0] || '',
+        mainStat: newCost === 1 ? 'ATK' : 'Crit Rate', 
+        flatAtk: newCost === 1 ? undefined : 100 
+      });
     }
   };
 
@@ -37,9 +46,8 @@ export default function EchoCard({ echo, index, onChange }: EchoCardProps) {
     onChange(index, { ...echo, echoId: newEchoId, setId: newEchoData?.sonataSets[0] || '' });
   };
 
-  const handleMainStatChange = (newStat: StatType) => {
-    onChange(index, { ...echo, mainStat: newStat });
-  };
+  const handleMainStatChange = (newStat: StatType) => onChange(index, { ...echo, mainStat: newStat });
+  const handleFlatAtkChange = (val: string) => onChange(index, { ...echo, flatAtk: parseFloat(val) || 0 });
 
   const handleSubStatChange = (subIndex: number, field: keyof SubStat, newValue: string | number) => {
     const newSubStats = [...echo.subStats];
@@ -47,10 +55,11 @@ export default function EchoCard({ echo, index, onChange }: EchoCardProps) {
     onChange(index, { ...echo, subStats: newSubStats });
   };
 
+  const mainStatsList = echo.cost === 1 ? COST_1_MAIN_STATS : ALL_STATS.filter(s => !COST_1_MAIN_STATS.includes(s));
+
   return (
     <div className="bg-[#1a1f2e] rounded-xl border border-slate-700/50 shadow-2xl overflow-hidden flex flex-col h-full">
       
-      {/* Header Section (Gold accents) */}
       <div className="bg-[#232938] p-4 border-b border-slate-700/50 flex justify-between items-center">
         <div>
           <h2 className="text-lg font-bold text-amber-100 flex items-center gap-2">
@@ -68,7 +77,6 @@ export default function EchoCard({ echo, index, onChange }: EchoCardProps) {
 
       <div className="p-5 flex-1 flex flex-col gap-6">
         
-        {/* Top Controls (Selectors) */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label className="text-[10px] text-slate-500 font-bold uppercase tracking-widest block mb-1">Select Echo</label>
@@ -94,34 +102,49 @@ export default function EchoCard({ echo, index, onChange }: EchoCardProps) {
           </div>
         </div>
 
-        {/* Main Stat & Set Selection */}
-        <div className="space-y-4">
-          <div>
+        {/* Main Stats Row */}
+        <div className="flex gap-4">
+          <div className="flex-1">
             <label className="text-[10px] text-slate-500 font-bold uppercase tracking-widest block mb-1">Main Stat</label>
             <select 
               value={echo.mainStat}
               onChange={(e) => handleMainStatChange(e.target.value as StatType)}
               className="w-full bg-[#2a3040] text-amber-100 font-bold text-sm rounded-md p-2.5 border border-amber-700/30 outline-none focus:border-amber-500"
             >
-              {ALL_STATS.map(stat => <option key={stat} value={stat}>{stat}</option>)}
+              {mainStatsList.map(stat => <option key={stat} value={stat}>{stat}</option>)}
             </select>
           </div>
           
-          <div>
-            <label className="text-[10px] text-slate-500 font-bold uppercase tracking-widest block mb-1">Sonata Effect</label>
-            <select 
-              value={echo.setId}
-              onChange={(e) => onChange(index, { ...echo, setId: e.target.value })}
-              className="w-full bg-[#2a3040] text-sm text-indigo-200 rounded-md p-2.5 border border-slate-600/50 outline-none focus:border-indigo-400"
-            >
-              {validSonataSets.map(set => <option key={set.id} value={set.id}>{set.name}</option>)}
-            </select>
-          </div>
+          {/* Fixed ATK for Cost 3 & 4 */}
+          {echo.cost !== 1 && (
+            <div className="w-1/3">
+              <label className="text-[10px] text-slate-500 font-bold uppercase tracking-widest block mb-1">Base ATK</label>
+              <input 
+                type="number"
+                value={echo.flatAtk || 0}
+                onChange={(e) => handleFlatAtkChange(e.target.value)}
+                className="w-full bg-[#2a3040] text-sm text-white rounded-md p-2.5 border border-slate-600/50 outline-none focus:border-indigo-400 font-mono text-right"
+              />
+            </div>
+          )}
         </div>
 
-        {/* Substats List */}
+        <div>
+          <label className="text-[10px] text-slate-500 font-bold uppercase tracking-widest block mb-1">Sonata Effect</label>
+          <select 
+            value={echo.setId}
+            onChange={(e) => onChange(index, { ...echo, setId: e.target.value })}
+            className="w-full bg-[#2a3040] text-sm text-indigo-200 rounded-md p-2.5 border border-slate-600/50 outline-none focus:border-indigo-400"
+          >
+            {validSonataSets.map(set => <option key={set.id} value={set.id}>{set.name}</option>)}
+          </select>
+        </div>
+
         <div className="mt-2">
-          <label className="text-[10px] text-slate-500 font-bold uppercase tracking-widest block mb-2">Sub Stats</label>
+          <div className="flex justify-between items-end mb-2">
+             <label className="text-[10px] text-slate-500 font-bold uppercase tracking-widest block">Sub Stats (5 Max)</label>
+             <span className="text-[10px] text-slate-600 italic">Assumes Echo is +25</span>
+          </div>
           <div className="bg-[#151923] rounded-lg border border-slate-700/50 divide-y divide-slate-700/30">
             {echo.subStats.map((stat, i) => (
               <div key={i} className="flex items-center gap-2 p-2 hover:bg-[#1f2433] transition-colors">
@@ -148,7 +171,6 @@ export default function EchoCard({ echo, index, onChange }: EchoCardProps) {
             ))}
           </div>
         </div>
-
       </div>
     </div>
   );

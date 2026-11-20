@@ -14,7 +14,8 @@ export interface Echo {
   cost: 1 | 3 | 4;
   setId: string;
   mainStat: StatType;
-  subStats: SubStat[];
+  flatAtk?: number; // NEW: For Cost 3 & 4 base ATK
+  subStats: SubStat[]; // Will now hold 5 sub-stats
 }
 
 export type StatWeights = {
