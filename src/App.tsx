@@ -5,15 +5,11 @@ import type { Echo } from './types';
 import { sonataData } from './sonataData';
 import { echoDatabase } from './echoData';
 import EchoCard from './components/EchoCard';
+import HoverSelect from './components/HoverSelect'; // Import the new component
 
-// Vite feature: Dynamically import all icons in the assets folder
-// This looks for files matching the pattern `./assets/*-icon.(png|jpg|jpeg|webp)`
 const icons = import.meta.glob('./assets/*-icon.{png,jpg,jpeg,webp}', { eager: true, import: 'default' });
-
-// A fallback placeholder just in case the image isn't uploaded yet
 const defaultIcon = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%231e293b'/%3E%3Ctext x='50' y='50' font-family='sans-serif' font-size='40' fill='%2364748b' text-anchor='middle' dominant-baseline='middle'%3E?%3C/text%3E%3C/svg%3E";
 
-// Initial 5-Echo setup with 5 sub-stats each
 const generateSubStats = () => [
   { type: 'Energy Regen', value: 0 } as const, 
   { type: 'HP%', value: 0 } as const, 
@@ -33,15 +29,11 @@ const initialEchoes: Echo[] = [
 function App() {
   const [echoes, setEchoes] = useState<Echo[]>(initialEchoes);
   const [selectedIndex, setSelectedIndex] = useState<number>(0);
-  
   const [selectedCharId, setSelectedCharId] = useState<string>('shorekeeper');
 
   const currentCharacter = charactersData.find(c => c.id === selectedCharId) || charactersData[0];
 
-  // Resolve the icon dynamically based on the character's ID
-  // e.g., if id is 'shorekeeper', it looks for './assets/shorekeeper-icon.png'
   const iconKey = `./assets/${currentCharacter.id}-icon.png`;
-  // Also check for other extensions just in case you upload .jpg or .webp
   const iconKeyJpg = `./assets/${currentCharacter.id}-icon.jpg`;
   const iconKeyJpeg = `./assets/${currentCharacter.id}-icon.jpeg`;
   const iconKeyWebp = `./assets/${currentCharacter.id}-icon.webp`;
@@ -58,28 +50,38 @@ function App() {
     setEchoes(newEchoes);
   };
 
+  // Format character data for the HoverSelect
+  const characterOptions = charactersData.map(char => ({
+    value: char.id,
+    label: `${char.name} (${char.element})`
+  }));
+
   return (
     <div className="min-h-screen bg-slate-900 text-slate-200 p-4 md:p-6 font-sans selection:bg-indigo-500/30">
       
-      <header className="mb-6 flex flex-col md:flex-row justify-between items-start md:items-center border-b border-slate-700/50 pb-4 gap-4">
+      {/* NEW: Centered Top Title */}
+      <div className="text-center mb-8 pt-4">
+        <h1 className="text-3xl md:text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-cyan-400 tracking-tight drop-shadow-sm">
+          Wuthering Waves Build Tracker
+        </h1>
+      </div>
+
+      <header className="mb-6 max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-start md:items-center border-b border-slate-700/50 pb-4 gap-4">
         
-        {/* Character Selector Dropdown */}
+        {/* Character Selector Dropdown (Now using HoverSelect) */}
         <div className="flex items-center gap-4 w-full md:w-auto">
           <img 
             src={currentIcon} 
             alt={currentCharacter.name} 
-            className="w-12 h-12 object-cover rounded-full border-2 border-slate-600 bg-slate-800 shadow-md" 
+            className="w-14 h-14 object-cover rounded-full border-2 border-slate-600 bg-slate-800 shadow-md" 
           />
-          <div className="flex-1">
-            <select
+          <div className="flex-1 w-64">
+            <HoverSelect 
               value={selectedCharId}
-              onChange={(e) => setSelectedCharId(e.target.value)}
-              className="bg-slate-800 text-lg font-bold text-white rounded-md p-2 border border-slate-600 outline-none focus:border-indigo-400 cursor-pointer w-full shadow-inner"
-            >
-              {charactersData.map(char => (
-                <option key={char.id} value={char.id}>{char.name} ({char.element})</option>
-              ))}
-            </select>
+              options={characterOptions}
+              onChange={(val) => setSelectedCharId(val)}
+              className="text-lg font-bold text-white shadow-inner"
+            />
             <p className="text-xs text-slate-400 mt-1">
               {currentCharacter.recommendedSets} • {currentCharacter.mainStat4}
             </p>
@@ -88,18 +90,18 @@ function App() {
         
         {/* Score & Grade Panel */}
         <div className="flex gap-4 w-full md:w-auto justify-end">
-          <div className="bg-slate-800 px-6 py-2 rounded-full border border-slate-700 flex items-center gap-4">
+          <div className="bg-slate-800 px-6 py-2 rounded-full border border-slate-700 flex items-center gap-4 shadow-sm">
             <span className="text-sm text-slate-400">Grade</span>
             <span className={`text-2xl font-bold ${tier.color}`}>{tier.label}</span>
           </div>
-          <div className="bg-slate-800 px-6 py-2 rounded-full border border-slate-700 flex items-center gap-4">
+          <div className="bg-slate-800 px-6 py-2 rounded-full border border-slate-700 flex items-center gap-4 shadow-sm">
             <span className="text-sm text-slate-400">Total Score</span>
             <span className="text-2xl font-bold text-green-400">{totalScore.toFixed(2)}</span>
           </div>
         </div>
       </header>
 
-      <main className="max-w-5xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-6">
+      <main className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-6">
         
         {/* Left Sidebar - Echo Slots */}
         <div className="lg:col-span-4 flex flex-col gap-3">
@@ -130,7 +132,6 @@ function App() {
             );
           })}
 
-          {/* Active Sets Panel */}
           <div className="mt-4 p-4 rounded-lg bg-slate-800/30 border border-slate-700/30">
             <h3 className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-3">Active Sonata Sets</h3>
             <div className="flex flex-col gap-2">
@@ -149,7 +150,6 @@ function App() {
           </div>
         </div>
 
-        {/* Right Detail Panel - EchoCard */}
         <div className="lg:col-span-8">
           <EchoCard 
             echo={echoes[selectedIndex]} 

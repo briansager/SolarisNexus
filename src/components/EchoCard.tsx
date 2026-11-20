@@ -2,6 +2,7 @@ import type { Echo, StatType, SubStat, Character } from '../types';
 import { echoDatabase } from '../echoData';
 import { sonataData } from '../sonataData';
 import { calculateEchoScore } from '../scoring';
+import HoverSelect from './HoverSelect'; // Import the new component
 
 const ALL_STATS: StatType[] = [
   'ATK', 'ATK%', 'HP', 'HP%', 'DEF', 'DEF%',
@@ -15,7 +16,7 @@ const COST_1_MAIN_STATS: StatType[] = ['ATK', 'HP', 'DEF'];
 interface EchoCardProps {
   echo: Echo;
   index: number;
-  character: Character; // NEW: Pass character down
+  character: Character;
   onChange: (index: number, newEcho: Echo) => void;
 }
 
@@ -26,7 +27,8 @@ export default function EchoCard({ echo, index, character, onChange }: EchoCardP
   const selectedEchoData = echoDatabase.find(e => e.id === echo.echoId);
   const validSonataSets = sonataData.filter(set => selectedEchoData?.sonataSets.includes(set.id));
 
-  const handleCostChange = (newCost: 1 | 3 | 4) => {
+  const handleCostChange = (newCostStr: string) => {
+    const newCost = Number(newCostStr) as 1 | 3 | 4;
     const firstEchoOfCost = echoDatabase.find(e => e.cost === newCost);
     if (firstEchoOfCost) {
       onChange(index, { 
@@ -56,6 +58,16 @@ export default function EchoCard({ echo, index, character, onChange }: EchoCardP
 
   const mainStatsList = echo.cost === 1 ? COST_1_MAIN_STATS : ALL_STATS.filter(s => !COST_1_MAIN_STATS.includes(s));
 
+  // Prepare options for HoverSelects
+  const echoOptions = availableEchoes.map(e => ({ value: e.id, label: e.name }));
+  const costOptions = [
+    { value: '1', label: 'Cost 1' },
+    { value: '3', label: 'Cost 3' },
+    { value: '4', label: 'Cost 4' }
+  ];
+  const setOptions = validSonataSets.map(s => ({ value: s.id, label: s.name }));
+  const mainStatOptions = mainStatsList.map(s => ({ value: s, label: s }));
+
   return (
     <div className="bg-[#1a1f2e] rounded-xl border border-slate-700/50 shadow-2xl overflow-hidden flex flex-col h-full">
       
@@ -79,38 +91,31 @@ export default function EchoCard({ echo, index, character, onChange }: EchoCardP
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label className="text-[10px] text-slate-500 font-bold uppercase tracking-widest block mb-1">Select Echo</label>
-            <select 
+            <HoverSelect 
               value={echo.echoId}
-              onChange={(e) => handleEchoChange(e.target.value)}
-              className="w-full bg-[#2a3040] text-sm text-slate-200 rounded-md p-2 border border-slate-600/50 outline-none focus:border-indigo-400"
-            >
-              {availableEchoes.map(e => <option key={e.id} value={e.id}>{e.name}</option>)}
-            </select>
+              options={echoOptions}
+              onChange={handleEchoChange}
+            />
           </div>
           <div>
             <label className="text-[10px] text-slate-500 font-bold uppercase tracking-widest block mb-1">Cost Filter</label>
-            <select
-              value={echo.cost}
-              onChange={(e) => handleCostChange(Number(e.target.value) as 1 | 3 | 4)}
-              className="w-full bg-[#2a3040] text-sm text-slate-200 rounded-md p-2 border border-slate-600/50 outline-none focus:border-indigo-400"
-            >
-              <option value={1}>Cost 1</option>
-              <option value={3}>Cost 3</option>
-              <option value={4}>Cost 4</option>
-            </select>
+            <HoverSelect 
+              value={echo.cost.toString()}
+              options={costOptions}
+              onChange={handleCostChange}
+            />
           </div>
         </div>
 
         <div className="flex gap-4">
           <div className="flex-1">
             <label className="text-[10px] text-slate-500 font-bold uppercase tracking-widest block mb-1">Main Stat</label>
-            <select 
+            <HoverSelect 
               value={echo.mainStat}
-              onChange={(e) => handleMainStatChange(e.target.value as StatType)}
-              className="w-full bg-[#2a3040] text-amber-100 font-bold text-sm rounded-md p-2.5 border border-amber-700/30 outline-none focus:border-amber-500"
-            >
-              {mainStatsList.map(stat => <option key={stat} value={stat}>{stat}</option>)}
-            </select>
+              options={mainStatOptions}
+              onChange={(val) => handleMainStatChange(val as StatType)}
+              className="border-amber-700/30 text-amber-100 font-bold"
+            />
           </div>
           
           {echo.cost !== 1 && (
@@ -128,13 +133,12 @@ export default function EchoCard({ echo, index, character, onChange }: EchoCardP
 
         <div>
           <label className="text-[10px] text-slate-500 font-bold uppercase tracking-widest block mb-1">Sonata Effect</label>
-          <select 
+          <HoverSelect 
             value={echo.setId}
-            onChange={(e) => onChange(index, { ...echo, setId: e.target.value })}
-            className="w-full bg-[#2a3040] text-sm text-indigo-200 rounded-md p-2.5 border border-slate-600/50 outline-none focus:border-indigo-400"
-          >
-            {validSonataSets.map(set => <option key={set.id} value={set.id}>{set.name}</option>)}
-          </select>
+            options={setOptions}
+            onChange={(val) => onChange(index, { ...echo, setId: val })}
+            className="text-indigo-200"
+          />
         </div>
 
         <div className="mt-2">
