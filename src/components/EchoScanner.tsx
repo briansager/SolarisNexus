@@ -28,8 +28,10 @@ export default function EchoScanner({ onScanComplete }: EchoScannerProps) {
     setError(null);
 
     try {
-      // 1. Run OCR entirely in the browser
       const result = await Tesseract.recognize(file, 'eng', {
+        workerPath: 'https://cdn.jsdelivr.net/npm/tesseract.js@v5.0.0/dist/worker.min.js',
+        corePath: 'https://cdn.jsdelivr.net/npm/tesseract.js-core@v5.0.0',
+        langPath: 'https://tessdata.projectnaptha.com/4.0.0',
         logger: (m) => {
           if (m.status === 'recognizing text') {
             setProgress(Math.round(m.progress * 100));
@@ -38,8 +40,6 @@ export default function EchoScanner({ onScanComplete }: EchoScannerProps) {
       });
 
       const rawText = result.data.text;
-      
-      // 2. Parse the text
       const parsedData = parseEchoText(rawText);
       
       if (parsedData && parsedData.mainStat) {
@@ -52,62 +52,104 @@ export default function EchoScanner({ onScanComplete }: EchoScannerProps) {
       console.error(err);
       setError("Failed to scan image.");
     } finally {
-      // 3. Image is discarded from memory automatically by the browser
       setIsScanning(false);
       if (fileInputRef.current) fileInputRef.current.value = '';
     }
   };
 
   const parseEchoText = (text: string): Partial<Echo> | null => {
+    // Split into lines and clean up empty ones
     const lines = text.split('\n').map(l => l.trim()).filter(Boolean);
     
     let mainStat: StatType | undefined;
     let flatAtk: number | undefined;
     const subStats: SubStat[] = [];
 
-    // Helper to find matching stat type from OCR text
+    // Helper to find matching stat type, ignoring punctuation and spaces
     const matchStat = (line: string): StatType | null => {
-      for (const stat of ALL_STATS) {
-        // Remove spaces and % to make matching more forgiving for OCR errors
-        const cleanStat = stat.replace(/\s|%/g, '').toLowerCase();
-        const cleanLine = line.replace(/\s|%/g, '').toLowerCase();
-        
-        // Simple fuzzy match: if the line contains the stat name
-        if (cleanLine.includes(cleanStat) || cleanLine.includes(cleanStat.replace('dmgbonus', ''))) {
-          return stat;
-        }
-      }
-      // Fallbacks for common OCR errors
-      if (text.toLowerCase().includes('crit rate')) return 'Crit Rate';
-      if (text.toLowerCase().includes('crit dmg')) return 'Crit DMG';
+      const cleanLine = line.toLowerCase().replace(/[^a-z0-9]/g, ''); 
+      
+      // Check for specific matches first so "Crit Rate" doesn't accidentally match "Crit DMG"
+      if (cleanLine.includes('critrate') || cleanLine.includes('crrate')) return 'Crit Rate';
+      if (cleanLine.includes('critdmg') || cleanLine.includes('critdmg')) return 'Crit DMG';
+      if (cleanLine.includes('energyregen')) return 'Energy Regen';
+      if (cleanLine.includes('healingbonus')) return 'Healing Bonus';
+      
+      // Check element DMGs
+      if (cleanLine.includes('aerodmg')) return 'Aero DMG Bonus';
+      if (cleanLine.includes('glaciodmg')) return 'Glacio DMG Bonus';
+      if (cleanLine.includes('fusiondmg')) return 'Fusion DMG Bonus';
+      if (cleanLine.includes('electrodmg')) return 'Electro DMG Bonus';
+      if (cleanLine.includes('spectrodmg')) return 'Spectro DMG Bonus';
+      if (cleanLine.includes('havocdmg')) return 'Havoc DMG Bonus';
+
+      // Check attack types
+      if (cleanLine.includes('basicattack')) return 'Basic Attack DMG Bonus';
+      if (cleanLine.includes('heavyattack')) return 'Heavy Attack DMG Bonus';
+      if (cleanLine.includes('resonanceskill')) return 'Resonance Skill DMG Bonus';
+      if (cleanLine.includes('resonanceliberation')) return 'Resonance Liberation DMG Bonus';
+
+      // Check base stats (make sure ATK doesn't match ATK% if possible)
+      if (cleanLine.includes('atk') && cleanLine.includes('%')) return 'ATK%';
+      if (cleanLine.includes('atk')) return 'ATK';
+      if (cleanLine.includes('hp') && cleanLine.includes('%')) return 'HP%';
+      if (cleanLine.includes('hp')) return 'HP';
+      if (cleanLine.includes('def') && cleanLine.includes('%')) return 'DEF%';
+      if (cleanLine.includes('def')) return 'DEF';
+
       return null;
     };
 
-    // Helper to extract the number from a line
+    // Helper to extract the first float/number found in a string
     const extractNumber = (line: string): number => {
       const match = line.match(/(\d+(?:\.\d+)?)/);
       return match ? parseFloat(match[1]) : 0;
     };
 
-    // Parse lines
-    lines.forEach((line, index) => {
+    // State machine to process lines based on what we've seen
+    let foundBaseAtk = false;
+    let inSubStatsSection = false;
+
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i];
       const statType = matchStat(line);
-      if (!statType) return;
+
+      if (!statType) continue;
 
       const value = extractNumber(line);
 
-      // In WuWa, the first stat is almost always the Main Stat
-      if (index < 5 && !mainStat) {
+      // 1. Check if this is the Main Stat (very first stat we find at the top)
+      if (!mainStat && !inSubStatsSection) {
         mainStat = statType;
-      } else if (statType === 'ATK' && value > 50) {
-        // Cost 3/4 echoes have a base flat ATK that is a higher number (usually 100-150)
-        flatAtk = value;
-      } else if (subStats.length < 5) {
-        subStats.push({ type: statType, value });
+        continue;
       }
-    });
 
-    // If we couldn't find 5 substats, pad with blank ones
+      // 2. Check if this is Base ATK (Usually appears right after the Main Stat, and is exactly "ATK")
+      if (mainStat && !foundBaseAtk && statType === 'ATK') {
+        flatAtk = value;
+        foundBaseAtk = true;
+        continue;
+      }
+
+      // 3. Everything else below the base ATK is a Sub-stat
+      if (foundBaseAtk || (mainStat && !foundBaseAtk)) {
+        inSubStatsSection = true;
+      }
+
+      // If we are in the substat section, start collecting
+      if (inSubStatsSection && subStats.length < 5) {
+        // Avoid grabbing the Base ATK again if OCR duplicated it
+        if (statType === 'ATK' && value > 100) continue; 
+        
+        // Ensure we don't grab the exact same line twice
+        const isDuplicate = subStats.some(s => s.type === statType && s.value === value);
+        if (!isDuplicate) {
+          subStats.push({ type: statType, value });
+        }
+      }
+    }
+
+    // Pad with blank ones if OCR missed any (e.g. only found 4)
     while (subStats.length < 5) {
       subStats.push({ type: 'ATK%', value: 0 });
     }
