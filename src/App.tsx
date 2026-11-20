@@ -2,10 +2,16 @@ import { useState } from 'react';
 import { charactersData } from './data';
 import { calculateBuildScore, getActiveSonataSets, getScoreTier } from './scoring';
 import type { Echo } from './types';
-import shorekeeperIcon from './assets/shorekeeper-icon.png'; 
 import { sonataData } from './sonataData';
 import { echoDatabase } from './echoData';
 import EchoCard from './components/EchoCard';
+
+// Vite feature: Dynamically import all icons in the assets folder
+// This looks for files matching the pattern `./assets/*-icon.(png|jpg|jpeg|webp)`
+const icons = import.meta.glob('./assets/*-icon.{png,jpg,jpeg,webp}', { eager: true, import: 'default' });
+
+// A fallback placeholder just in case the image isn't uploaded yet
+const defaultIcon = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%231e293b'/%3E%3Ctext x='50' y='50' font-family='sans-serif' font-size='40' fill='%2364748b' text-anchor='middle' dominant-baseline='middle'%3E?%3C/text%3E%3C/svg%3E";
 
 // Initial 5-Echo setup with 5 sub-stats each
 const generateSubStats = () => [
@@ -28,11 +34,19 @@ function App() {
   const [echoes, setEchoes] = useState<Echo[]>(initialEchoes);
   const [selectedIndex, setSelectedIndex] = useState<number>(0);
   
-  // Track the selected character
   const [selectedCharId, setSelectedCharId] = useState<string>('shorekeeper');
 
-  // Find the character object based on the ID
   const currentCharacter = charactersData.find(c => c.id === selectedCharId) || charactersData[0];
+
+  // Resolve the icon dynamically based on the character's ID
+  // e.g., if id is 'shorekeeper', it looks for './assets/shorekeeper-icon.png'
+  const iconKey = `./assets/${currentCharacter.id}-icon.png`;
+  // Also check for other extensions just in case you upload .jpg or .webp
+  const iconKeyJpg = `./assets/${currentCharacter.id}-icon.jpg`;
+  const iconKeyJpeg = `./assets/${currentCharacter.id}-icon.jpeg`;
+  const iconKeyWebp = `./assets/${currentCharacter.id}-icon.webp`;
+
+  const currentIcon = (icons[iconKey] || icons[iconKeyJpg] || icons[iconKeyJpeg] || icons[iconKeyWebp] || defaultIcon) as string;
 
   const totalScore = calculateBuildScore(echoes, currentCharacter.weights);
   const activeSets = getActiveSonataSets(echoes);
@@ -52,15 +66,15 @@ function App() {
         {/* Character Selector Dropdown */}
         <div className="flex items-center gap-4 w-full md:w-auto">
           <img 
-            src={shorekeeperIcon} 
+            src={currentIcon} 
             alt={currentCharacter.name} 
-            className="w-12 h-12 object-cover rounded-full border-2 border-slate-600 bg-slate-800" 
+            className="w-12 h-12 object-cover rounded-full border-2 border-slate-600 bg-slate-800 shadow-md" 
           />
           <div className="flex-1">
             <select
               value={selectedCharId}
               onChange={(e) => setSelectedCharId(e.target.value)}
-              className="bg-slate-800 text-lg font-bold text-white rounded-md p-2 border border-slate-600 outline-none focus:border-indigo-400 cursor-pointer w-full"
+              className="bg-slate-800 text-lg font-bold text-white rounded-md p-2 border border-slate-600 outline-none focus:border-indigo-400 cursor-pointer w-full shadow-inner"
             >
               {charactersData.map(char => (
                 <option key={char.id} value={char.id}>{char.name} ({char.element})</option>
