@@ -4,6 +4,7 @@ import { calculateBuildScore, getActiveSonataSets } from './scoring';
 import type { Echo } from './types';
 import shorekeeperIcon from './assets/shorekeeper-icon.png'; 
 import { sonataData } from './sonataData';
+import { echoDatabase } from './echoData'; // <-- Added this import
 import EchoCard from './components/EchoCard';
 
 // Initial 5-Echo setup (4-3-3-1-1)
@@ -56,7 +57,7 @@ function App() {
           <h2 className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-2 px-2">Equipped Echoes</h2>
           
           {echoes.map((echo, index) => {
-            const echoData = require('./echoData').echoDatabase.find((e: any) => e.id === echo.echoId);
+            const echoData = echoDatabase.find(e => e.id === echo.echoId);
             const isSelected = selectedIndex === index;
             return (
               <button
