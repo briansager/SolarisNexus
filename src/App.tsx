@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { charactersData } from './data';
 import { calculateEchoScore } from './scoring';
 import type { Echo, StatType, SubStat } from './types';
-import shorekeeperImg from './assets/shorekeeper.png'; 
+import shorekeeperIcon from './assets/shorekeeper-icon.png'; 
 import { sonataData } from './sonataData';
 
 // A list of all stats for the dropdowns
@@ -50,9 +50,9 @@ function App() {
         <div className="bg-slate-800 p-4 rounded-lg border border-slate-700 flex justify-between items-center shadow-lg">
           <div className="flex items-center gap-4">
             <img 
-              src={shorekeeperImg} 
+              src={shorekeeperIcon} 
               alt="Shorekeeper" 
-              className="w-20 h-20 object-cover object-top rounded-full border-2 border-indigo-500 bg-slate-900"
+              className="w-20 h-20 object-cover rounded-full border-2 border-indigo-500 bg-slate-900"
             />
             <div>
               <h2 className="text-xl font-bold text-white">{shorekeeper.name}</h2>
