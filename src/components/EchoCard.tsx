@@ -28,22 +28,13 @@ export default function EchoCard({ echo, index, onChange }: EchoCardProps) {
   const handleCostChange = (newCost: 1 | 3 | 4) => {
     const firstEchoOfCost = echoDatabase.find(e => e.cost === newCost);
     if (firstEchoOfCost) {
-      onChange(index, {
-        ...echo,
-        cost: newCost,
-        echoId: firstEchoOfCost.id,
-        setId: firstEchoOfCost.sonataSets[0] || ''
-      });
+      onChange(index, { ...echo, cost: newCost, echoId: firstEchoOfCost.id, setId: firstEchoOfCost.sonataSets[0] || '' });
     }
   };
 
   const handleEchoChange = (newEchoId: string) => {
     const newEchoData = echoDatabase.find(e => e.id === newEchoId);
-    onChange(index, { 
-      ...echo, 
-      echoId: newEchoId,
-      setId: newEchoData?.sonataSets[0] || '' 
-    });
+    onChange(index, { ...echo, echoId: newEchoId, setId: newEchoData?.sonataSets[0] || '' });
   };
 
   const handleMainStatChange = (newStat: StatType) => {
@@ -57,90 +48,107 @@ export default function EchoCard({ echo, index, onChange }: EchoCardProps) {
   };
 
   return (
-    <div className="bg-slate-800 p-4 md:p-6 rounded-lg border border-slate-700 shadow-lg space-y-4 md:space-y-6 relative">
+    <div className="bg-[#1a1f2e] rounded-xl border border-slate-700/50 shadow-2xl overflow-hidden flex flex-col h-full">
       
-      {/* Score Badge */}
-      <div className="absolute top-4 right-4 bg-slate-900 px-3 py-1 rounded border border-slate-700">
-        <span className="text-xs text-slate-400 mr-2">Score:</span>
-        <span className="font-bold text-green-400">{currentScore.toFixed(2)}</span>
+      {/* Header Section (Gold accents) */}
+      <div className="bg-[#232938] p-4 border-b border-slate-700/50 flex justify-between items-center">
+        <div>
+          <h2 className="text-lg font-bold text-amber-100 flex items-center gap-2">
+            <span className="bg-amber-900/50 text-amber-200 px-2 py-0.5 rounded text-xs border border-amber-700/50">
+              COST {echo.cost}
+            </span>
+            {selectedEchoData?.name}
+          </h2>
+        </div>
+        <div className="text-right">
+          <p className="text-xs text-slate-400 mb-0.5">Echo Score</p>
+          <p className="text-xl font-bold text-green-400 font-mono">{currentScore.toFixed(2)}</p>
+        </div>
       </div>
 
-      {/* Echo Selection */}
-      <div className="pt-2">
-        <label className="text-xs md:text-sm text-slate-400 font-bold uppercase tracking-wider block mb-2">Echo</label>
-        <select 
-          value={echo.echoId}
-          onChange={(e) => handleEchoChange(e.target.value)}
-          className="w-full bg-slate-700 text-white font-bold text-base md:text-lg rounded p-2 outline-none focus:ring-2 focus:ring-indigo-500 cursor-pointer"
-        >
-          {availableEchoes.map(e => (
-            <option key={e.id} value={e.id}>{e.name}</option>
-          ))}
-        </select>
-      </div>
-
-      {/* Cost & Main Stat Row */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-0 pt-4 border-t border-slate-700">
-        <select
-          value={echo.cost}
-          onChange={(e) => handleCostChange(Number(e.target.value) as 1 | 3 | 4)}
-          className="bg-amber-900 text-amber-200 px-3 py-1 rounded text-sm font-bold outline-none cursor-pointer focus:ring-2 focus:ring-amber-500"
-        >
-          <option value={1}>Cost 1</option>
-          <option value={3}>Cost 3</option>
-          <option value={4}>Cost 4</option>
-        </select>
+      <div className="p-5 flex-1 flex flex-col gap-6">
         
-        <select 
-          value={echo.mainStat}
-          onChange={(e) => handleMainStatChange(e.target.value as StatType)}
-          className="w-full sm:w-auto bg-slate-700 text-white font-bold text-base md:text-lg rounded p-2 outline-none focus:ring-2 focus:ring-indigo-500 cursor-pointer"
-        >
-          {ALL_STATS.map(stat => (
-            <option key={stat} value={stat}>{stat}</option>
-          ))}
-        </select>
-      </div>
-
-      {/* Set Selection */}
-      <div className="pt-4 border-t border-slate-700">
-        <label className="text-xs md:text-sm text-slate-400 font-bold uppercase tracking-wider block mb-2">Sonata Effect</label>
-        <select 
-          value={echo.setId}
-          onChange={(e) => onChange(index, { ...echo, setId: e.target.value })}
-          className="w-full bg-slate-700 text-sm p-2 rounded outline-none focus:ring-2 focus:ring-indigo-500 cursor-pointer text-slate-200"
-        >
-          {validSonataSets.map(set => (
-            <option key={set.id} value={set.id}>{set.name}</option>
-          ))}
-        </select>
-      </div>
-      
-      {/* Sub Stats List */}
-      <div className="space-y-3 pt-4 border-t border-slate-700">
-        <p className="text-xs md:text-sm text-slate-400 font-bold uppercase tracking-wider mb-2">Sub Stats</p>
-        
-        {echo.subStats.map((stat, i) => (
-          <div key={i} className="flex flex-col sm:flex-row gap-2 items-start sm:items-center">
+        {/* Top Controls (Selectors) */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label className="text-[10px] text-slate-500 font-bold uppercase tracking-widest block mb-1">Select Echo</label>
             <select 
-              value={stat.type}
-              onChange={(e) => handleSubStatChange(i, 'type', e.target.value)}
-              className="w-full sm:flex-1 bg-slate-700 text-sm p-2 rounded outline-none focus:ring-2 focus:ring-indigo-500 cursor-pointer text-slate-200"
+              value={echo.echoId}
+              onChange={(e) => handleEchoChange(e.target.value)}
+              className="w-full bg-[#2a3040] text-sm text-slate-200 rounded-md p-2 border border-slate-600/50 outline-none focus:border-indigo-400"
             >
-              {ALL_STATS.map(s => (
-                <option key={s} value={s}>{s}</option>
-              ))}
+              {availableEchoes.map(e => <option key={e.id} value={e.id}>{e.name}</option>)}
             </select>
-
-            <input 
-              type="number" 
-              step="0.1"
-              value={stat.value}
-              onChange={(e) => handleSubStatChange(i, 'value', parseFloat(e.target.value) || 0)}
-              className="w-full sm:w-24 bg-slate-700 text-sm p-2 rounded outline-none focus:ring-2 focus:ring-indigo-500 text-white font-mono sm:text-right"
-            />
           </div>
-        ))}
+          <div>
+            <label className="text-[10px] text-slate-500 font-bold uppercase tracking-widest block mb-1">Cost Filter</label>
+            <select
+              value={echo.cost}
+              onChange={(e) => handleCostChange(Number(e.target.value) as 1 | 3 | 4)}
+              className="w-full bg-[#2a3040] text-sm text-slate-200 rounded-md p-2 border border-slate-600/50 outline-none focus:border-indigo-400"
+            >
+              <option value={1}>Cost 1</option>
+              <option value={3}>Cost 3</option>
+              <option value={4}>Cost 4</option>
+            </select>
+          </div>
+        </div>
+
+        {/* Main Stat & Set Selection */}
+        <div className="space-y-4">
+          <div>
+            <label className="text-[10px] text-slate-500 font-bold uppercase tracking-widest block mb-1">Main Stat</label>
+            <select 
+              value={echo.mainStat}
+              onChange={(e) => handleMainStatChange(e.target.value as StatType)}
+              className="w-full bg-[#2a3040] text-amber-100 font-bold text-sm rounded-md p-2.5 border border-amber-700/30 outline-none focus:border-amber-500"
+            >
+              {ALL_STATS.map(stat => <option key={stat} value={stat}>{stat}</option>)}
+            </select>
+          </div>
+          
+          <div>
+            <label className="text-[10px] text-slate-500 font-bold uppercase tracking-widest block mb-1">Sonata Effect</label>
+            <select 
+              value={echo.setId}
+              onChange={(e) => onChange(index, { ...echo, setId: e.target.value })}
+              className="w-full bg-[#2a3040] text-sm text-indigo-200 rounded-md p-2.5 border border-slate-600/50 outline-none focus:border-indigo-400"
+            >
+              {validSonataSets.map(set => <option key={set.id} value={set.id}>{set.name}</option>)}
+            </select>
+          </div>
+        </div>
+
+        {/* Substats List */}
+        <div className="mt-2">
+          <label className="text-[10px] text-slate-500 font-bold uppercase tracking-widest block mb-2">Sub Stats</label>
+          <div className="bg-[#151923] rounded-lg border border-slate-700/50 divide-y divide-slate-700/30">
+            {echo.subStats.map((stat, i) => (
+              <div key={i} className="flex items-center gap-2 p-2 hover:bg-[#1f2433] transition-colors">
+                <span className="text-slate-500 text-xs w-4 text-center">+</span>
+                <select 
+                  value={stat.type}
+                  onChange={(e) => handleSubStatChange(i, 'type', e.target.value)}
+                  className="flex-1 bg-transparent text-sm text-slate-300 outline-none cursor-pointer appearance-none"
+                >
+                  {ALL_STATS.map(s => <option key={s} value={s} className="bg-[#1a1f2e]">{s}</option>)}
+                </select>
+
+                <div className="flex items-center bg-[#2a3040] rounded border border-slate-600/50 focus-within:border-indigo-400 w-24">
+                  <input 
+                    type="number" 
+                    step="0.1"
+                    value={stat.value}
+                    onChange={(e) => handleSubStatChange(i, 'value', parseFloat(e.target.value) || 0)}
+                    className="w-full bg-transparent text-sm p-1.5 text-right font-mono text-white outline-none"
+                  />
+                  <span className="text-slate-500 text-xs px-2">%</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
       </div>
     </div>
   );

@@ -8,30 +8,16 @@ import EchoCard from './components/EchoCard';
 
 // Initial 5-Echo setup (4-3-3-1-1)
 const initialEchoes: Echo[] = [
-  {
-    echoId: 'mourning-aix', cost: 4, setId: 'celestial-light', mainStat: 'Crit Rate',
-    subStats: [{ type: 'Energy Regen', value: 0 }, { type: 'HP%', value: 0 }, { type: 'Crit DMG', value: 0 }]
-  },
-  {
-    echoId: 'abyssal-mercator', cost: 3, setId: 'eternal-radiance', mainStat: 'Spectro DMG Bonus',
-    subStats: [{ type: 'Energy Regen', value: 0 }, { type: 'HP%', value: 0 }, { type: 'Crit DMG', value: 0 }]
-  },
-  {
-    echoId: 'diurnus-knight', cost: 3, setId: 'eternal-radiance', mainStat: 'Spectro DMG Bonus',
-    subStats: [{ type: 'Energy Regen', value: 0 }, { type: 'HP%', value: 0 }, { type: 'Crit DMG', value: 0 }]
-  },
-  {
-    echoId: 'cruisewing', cost: 1, setId: 'rejuvenating-glow', mainStat: 'ATK%',
-    subStats: [{ type: 'Energy Regen', value: 0 }, { type: 'HP%', value: 0 }, { type: 'Crit DMG', value: 0 }]
-  },
-  {
-    echoId: 'fission-junrock', cost: 1, setId: 'rejuvenating-glow', mainStat: 'ATK%',
-    subStats: [{ type: 'Energy Regen', value: 0 }, { type: 'HP%', value: 0 }, { type: 'Crit DMG', value: 0 }]
-  }
+  { echoId: 'mourning-aix', cost: 4, setId: 'celestial-light', mainStat: 'Crit Rate', subStats: [{ type: 'Energy Regen', value: 0 }, { type: 'HP%', value: 0 }, { type: 'Crit DMG', value: 0 }] },
+  { echoId: 'abyssal-mercator', cost: 3, setId: 'eternal-radiance', mainStat: 'Spectro DMG Bonus', subStats: [{ type: 'Energy Regen', value: 0 }, { type: 'HP%', value: 0 }, { type: 'Crit DMG', value: 0 }] },
+  { echoId: 'diurnus-knight', cost: 3, setId: 'eternal-radiance', mainStat: 'Spectro DMG Bonus', subStats: [{ type: 'Energy Regen', value: 0 }, { type: 'HP%', value: 0 }, { type: 'Crit DMG', value: 0 }] },
+  { echoId: 'cruisewing', cost: 1, setId: 'rejuvenating-glow', mainStat: 'ATK%', subStats: [{ type: 'Energy Regen', value: 0 }, { type: 'HP%', value: 0 }, { type: 'Crit DMG', value: 0 }] },
+  { echoId: 'fission-junrock', cost: 1, setId: 'rejuvenating-glow', mainStat: 'ATK%', subStats: [{ type: 'Energy Regen', value: 0 }, { type: 'HP%', value: 0 }, { type: 'Crit DMG', value: 0 }] }
 ];
 
 function App() {
   const [echoes, setEchoes] = useState<Echo[]>(initialEchoes);
+  const [selectedIndex, setSelectedIndex] = useState<number>(0);
 
   const shorekeeper = charactersData[0];
   const totalScore = calculateBuildScore(echoes, shorekeeper.weights);
@@ -44,57 +30,89 @@ function App() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-900 text-slate-200 p-4 md:p-8 font-sans">
-      <header className="mb-6 md:mb-8 border-b border-slate-700 pb-4">
-        <h1 className="text-2xl md:text-3xl font-bold text-white tracking-wide">WuWa Build Tracker</h1>
+    <div className="min-h-screen bg-slate-900 text-slate-200 p-4 md:p-6 font-sans selection:bg-indigo-500/30">
+      
+      {/* Top Header */}
+      <header className="mb-6 flex flex-col md:flex-row justify-between items-center border-b border-slate-700/50 pb-4">
+        <div className="flex items-center gap-4">
+          <img src={shorekeeperIcon} alt="Shorekeeper" className="w-12 h-12 object-cover rounded-full border-2 border-slate-600 bg-slate-800" />
+          <div>
+            <h1 className="text-xl font-bold text-white tracking-wide">{shorekeeper.name}</h1>
+            <p className="text-xs text-slate-400">{shorekeeper.element} • WuWa Build Tracker</p>
+          </div>
+        </div>
+        
+        <div className="mt-4 md:mt-0 bg-slate-800 px-6 py-2 rounded-full border border-slate-700 flex items-center gap-4">
+          <span className="text-sm text-slate-400">Total Score</span>
+          <span className="text-2xl font-bold text-green-400">{totalScore.toFixed(2)}</span>
+        </div>
       </header>
 
-      <main className="max-w-3xl mx-auto space-y-6">
+      {/* Main Layout Grid */}
+      <main className="max-w-5xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-6">
         
-        {/* Character Info Header */}
-        <div className="bg-slate-800 p-4 md:p-6 rounded-lg border border-slate-700 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 shadow-lg sticky top-4 z-10">
-          <div className="flex items-center gap-4">
-            <img 
-              src={shorekeeperIcon} 
-              alt="Shorekeeper" 
-              className="w-16 h-16 md:w-20 md:h-20 object-cover rounded-full border-2 border-indigo-500 bg-slate-900"
-            />
-            <div>
-              <h2 className="text-lg md:text-xl font-bold text-white">{shorekeeper.name}</h2>
-              <p className="text-sm text-indigo-400">{shorekeeper.element}</p>
-              
-              {/* Active Sonata Sets */}
-              <div className="flex gap-2 mt-2 flex-wrap">
-                {activeSets.map(set => {
-                  const setData = sonataData.find(s => s.id === set.setId);
-                  return (
-                    <span key={set.setId} className="text-xs bg-indigo-900/50 text-indigo-200 px-2 py-1 rounded border border-indigo-700/50">
-                      {setData?.name || set.setId} ({set.pieces}-pc)
-                    </span>
-                  );
-                })}
-                {activeSets.length === 0 && (
-                  <span className="text-xs text-slate-500 italic">No active set bonuses (needs 2+ pieces)</span>
-                )}
-              </div>
+        {/* Left Sidebar - Echo Slots */}
+        <div className="lg:col-span-4 flex flex-col gap-3">
+          <h2 className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-2 px-2">Equipped Echoes</h2>
+          
+          {echoes.map((echo, index) => {
+            const echoData = require('./echoData').echoDatabase.find((e: any) => e.id === echo.echoId);
+            const isSelected = selectedIndex === index;
+            return (
+              <button
+                key={index}
+                onClick={() => setSelectedIndex(index)}
+                className={`flex items-center gap-4 p-3 rounded-lg border transition-all text-left
+                  ${isSelected 
+                    ? 'bg-indigo-900/40 border-indigo-500/50 shadow-[0_0_15px_rgba(99,102,241,0.2)]' 
+                    : 'bg-slate-800/50 border-slate-700/50 hover:bg-slate-800'
+                  }`}
+              >
+                <div className={`w-12 h-12 rounded flex items-center justify-center font-bold text-lg border
+                  ${echo.cost === 4 ? 'bg-amber-900/30 border-amber-500/50 text-amber-200' : 
+                    echo.cost === 3 ? 'bg-blue-900/30 border-blue-500/50 text-blue-200' : 
+                    'bg-emerald-900/30 border-emerald-500/50 text-emerald-200'}`}
+                >
+                  {echo.cost}
+                </div>
+                <div className="flex-1 overflow-hidden">
+                  <p className={`text-sm font-bold truncate ${isSelected ? 'text-white' : 'text-slate-300'}`}>
+                    {echoData?.name || 'Unknown Echo'}
+                  </p>
+                  <p className="text-xs text-slate-500 truncate">{echo.mainStat}</p>
+                </div>
+              </button>
+            );
+          })}
+
+          {/* Active Sets Panel */}
+          <div className="mt-4 p-4 rounded-lg bg-slate-800/30 border border-slate-700/30">
+            <h3 className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-3">Active Sonata Sets</h3>
+            <div className="flex flex-col gap-2">
+              {activeSets.map(set => {
+                const setData = sonataData.find(s => s.id === set.setId);
+                return (
+                  <div key={set.setId} className="flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-indigo-400"></span>
+                    <span className="text-sm text-indigo-200">{setData?.name || set.setId}</span>
+                    <span className="text-xs bg-slate-700 text-slate-300 px-2 py-0.5 rounded ml-auto">{set.pieces}-pc</span>
+                  </div>
+                );
+              })}
+              {activeSets.length === 0 && (
+                <span className="text-xs text-slate-500 italic">No active set bonuses</span>
+              )}
             </div>
-          </div>
-          <div className="md:text-right w-full md:w-auto bg-slate-900/50 p-3 rounded-lg md:bg-transparent md:p-0">
-            <p className="text-xs md:text-sm text-slate-400">Total Build Score</p>
-            <p className="text-3xl md:text-4xl font-bold text-green-400">{totalScore.toFixed(2)}</p>
           </div>
         </div>
 
-        {/* Render the 5 Echoes */}
-        <div className="space-y-6 pb-12">
-          {echoes.map((echo, index) => (
-            <EchoCard 
-              key={index} 
-              echo={echo} 
-              index={index} 
-              onChange={handleEchoChange} 
-            />
-          ))}
+        {/* Right Detail Panel - EchoCard */}
+        <div className="lg:col-span-8">
+          <EchoCard 
+            echo={echoes[selectedIndex]} 
+            index={selectedIndex} 
+            onChange={handleEchoChange} 
+          />
         </div>
       </main>
     </div>
