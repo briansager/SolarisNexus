@@ -2,13 +2,6 @@ import { useState, useRef } from 'react';
 import Tesseract from 'tesseract.js';
 import type { Echo, StatType, SubStat } from '../types';
 
-const ALL_STATS: StatType[] = [
-  'ATK', 'ATK%', 'HP', 'HP%', 'DEF', 'DEF%',
-  'Crit Rate', 'Crit DMG', 'Energy Regen', 'Healing Bonus',
-  'Aero DMG Bonus', 'Glacio DMG Bonus', 'Fusion DMG Bonus', 'Electro DMG Bonus', 'Spectro DMG Bonus', 'Havoc DMG Bonus',
-  'Basic Attack DMG Bonus', 'Heavy Attack DMG Bonus', 'Resonance Skill DMG Bonus', 'Resonance Liberation DMG Bonus'
-];
-
 interface EchoScannerProps {
   onScanComplete: (scannedEcho: Partial<Echo>) => void;
 }
@@ -29,8 +22,8 @@ export default function EchoScanner({ onScanComplete }: EchoScannerProps) {
 
     try {
       const result = await Tesseract.recognize(file, 'eng', {
-        workerPath: 'https://cdn.jsdelivr.net/npm/tesseract.js@v5.0.0/dist/worker.min.js',
-        corePath: 'https://cdn.jsdelivr.net/npm/tesseract.js-core@v5.0.0',
+        workerPath: 'https://cdn.jsdelivr.net/npm/tesseract.js@5.0.0/dist/worker.min.js',
+        corePath: 'https://cdn.jsdelivr.net/npm/tesseract.js-core@5.0.0',
         langPath: 'https://tessdata.projectnaptha.com/4.0.0',
         logger: (m) => {
           if (m.status === 'recognizing text') {
@@ -58,24 +51,20 @@ export default function EchoScanner({ onScanComplete }: EchoScannerProps) {
   };
 
   const parseEchoText = (text: string): Partial<Echo> | null => {
-    // Split into lines and clean up empty ones
     const lines = text.split('\n').map(l => l.trim()).filter(Boolean);
     
     let mainStat: StatType | undefined;
     let flatAtk: number | undefined;
     const subStats: SubStat[] = [];
 
-    // Helper to find matching stat type, ignoring punctuation and spaces
     const matchStat = (line: string): StatType | null => {
       const cleanLine = line.toLowerCase().replace(/[^a-z0-9]/g, ''); 
       
-      // Check for specific matches first so "Crit Rate" doesn't accidentally match "Crit DMG"
       if (cleanLine.includes('critrate') || cleanLine.includes('crrate')) return 'Crit Rate';
-      if (cleanLine.includes('critdmg') || cleanLine.includes('critdmg')) return 'Crit DMG';
+      if (cleanLine.includes('critdmg')) return 'Crit DMG';
       if (cleanLine.includes('energyregen')) return 'Energy Regen';
       if (cleanLine.includes('healingbonus')) return 'Healing Bonus';
       
-      // Check element DMGs
       if (cleanLine.includes('aerodmg')) return 'Aero DMG Bonus';
       if (cleanLine.includes('glaciodmg')) return 'Glacio DMG Bonus';
       if (cleanLine.includes('fusiondmg')) return 'Fusion DMG Bonus';
@@ -83,13 +72,11 @@ export default function EchoScanner({ onScanComplete }: EchoScannerProps) {
       if (cleanLine.includes('spectrodmg')) return 'Spectro DMG Bonus';
       if (cleanLine.includes('havocdmg')) return 'Havoc DMG Bonus';
 
-      // Check attack types
       if (cleanLine.includes('basicattack')) return 'Basic Attack DMG Bonus';
       if (cleanLine.includes('heavyattack')) return 'Heavy Attack DMG Bonus';
       if (cleanLine.includes('resonanceskill')) return 'Resonance Skill DMG Bonus';
       if (cleanLine.includes('resonanceliberation')) return 'Resonance Liberation DMG Bonus';
 
-      // Check base stats (make sure ATK doesn't match ATK% if possible)
       if (cleanLine.includes('atk') && cleanLine.includes('%')) return 'ATK%';
       if (cleanLine.includes('atk')) return 'ATK';
       if (cleanLine.includes('hp') && cleanLine.includes('%')) return 'HP%';
@@ -100,13 +87,11 @@ export default function EchoScanner({ onScanComplete }: EchoScannerProps) {
       return null;
     };
 
-    // Helper to extract the first float/number found in a string
     const extractNumber = (line: string): number => {
       const match = line.match(/(\d+(?:\.\d+)?)/);
       return match ? parseFloat(match[1]) : 0;
     };
 
-    // State machine to process lines based on what we've seen
     let foundBaseAtk = false;
     let inSubStatsSection = false;
 
@@ -118,30 +103,24 @@ export default function EchoScanner({ onScanComplete }: EchoScannerProps) {
 
       const value = extractNumber(line);
 
-      // 1. Check if this is the Main Stat (very first stat we find at the top)
       if (!mainStat && !inSubStatsSection) {
         mainStat = statType;
         continue;
       }
 
-      // 2. Check if this is Base ATK (Usually appears right after the Main Stat, and is exactly "ATK")
       if (mainStat && !foundBaseAtk && statType === 'ATK') {
         flatAtk = value;
         foundBaseAtk = true;
         continue;
       }
 
-      // 3. Everything else below the base ATK is a Sub-stat
       if (foundBaseAtk || (mainStat && !foundBaseAtk)) {
         inSubStatsSection = true;
       }
 
-      // If we are in the substat section, start collecting
       if (inSubStatsSection && subStats.length < 5) {
-        // Avoid grabbing the Base ATK again if OCR duplicated it
         if (statType === 'ATK' && value > 100) continue; 
         
-        // Ensure we don't grab the exact same line twice
         const isDuplicate = subStats.some(s => s.type === statType && s.value === value);
         if (!isDuplicate) {
           subStats.push({ type: statType, value });
@@ -149,7 +128,6 @@ export default function EchoScanner({ onScanComplete }: EchoScannerProps) {
       }
     }
 
-    // Pad with blank ones if OCR missed any (e.g. only found 4)
     while (subStats.length < 5) {
       subStats.push({ type: 'ATK%', value: 0 });
     }
