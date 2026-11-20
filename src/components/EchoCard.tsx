@@ -2,7 +2,8 @@ import type { Echo, StatType, SubStat, Character } from '../types';
 import { echoDatabase } from '../echoData';
 import { sonataData } from '../sonataData';
 import { calculateEchoScore } from '../scoring';
-import HoverSelect from './HoverSelect'; // Import the new component
+import HoverSelect from './HoverSelect';
+import EchoScanner from './EchoScanner';
 
 const ALL_STATS: StatType[] = [
   'ATK', 'ATK%', 'HP', 'HP%', 'DEF', 'DEF%',
@@ -56,6 +57,16 @@ export default function EchoCard({ echo, index, character, onChange }: EchoCardP
     onChange(index, { ...echo, subStats: newSubStats });
   };
 
+  // NEW: Handle data coming from the OCR Scanner
+  const handleScanComplete = (scannedData: Partial<Echo>) => {
+    onChange(index, {
+      ...echo,
+      mainStat: (scannedData.mainStat as StatType) || echo.mainStat,
+      flatAtk: scannedData.flatAtk !== undefined ? scannedData.flatAtk : echo.flatAtk,
+      subStats: scannedData.subStats || echo.subStats
+    });
+  };
+
   const mainStatsList = echo.cost === 1 ? COST_1_MAIN_STATS : ALL_STATS.filter(s => !COST_1_MAIN_STATS.includes(s));
 
   // Prepare options for HoverSelects
@@ -71,7 +82,7 @@ export default function EchoCard({ echo, index, character, onChange }: EchoCardP
   return (
     <div className="bg-[#1a1f2e] rounded-xl border border-slate-700/50 shadow-2xl overflow-hidden flex flex-col h-full">
       
-      <div className="bg-[#232938] p-4 border-b border-slate-700/50 flex justify-between items-center">
+      <div className="bg-[#232938] p-4 border-b border-slate-700/50 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h2 className="text-lg font-bold text-amber-100 flex items-center gap-2">
             <span className="bg-amber-900/50 text-amber-200 px-2 py-0.5 rounded text-xs border border-amber-700/50">
@@ -80,9 +91,15 @@ export default function EchoCard({ echo, index, character, onChange }: EchoCardP
             {selectedEchoData?.name}
           </h2>
         </div>
-        <div className="text-right">
-          <p className="text-xs text-slate-400 mb-0.5">Echo Score</p>
-          <p className="text-xl font-bold text-green-400 font-mono">{currentScore.toFixed(2)}</p>
+        
+        {/* Score and Scanner Row */}
+        <div className="flex items-center gap-4 w-full sm:w-auto justify-between sm:justify-end">
+          <EchoScanner onScanComplete={handleScanComplete} />
+          
+          <div className="text-right border-l border-slate-600/50 pl-4">
+            <p className="text-xs text-slate-400 mb-0.5">Echo Score</p>
+            <p className="text-xl font-bold text-green-400 font-mono">{currentScore.toFixed(2)}</p>
+          </div>
         </div>
       </div>
 
