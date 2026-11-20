@@ -10,7 +10,7 @@ export interface SubStat {
 }
 
 export interface Echo {
-  echoId: string; // <-- Added this
+  echoId: string;
   cost: 1 | 3 | 4;
   setId: string;
   mainStat: StatType;
@@ -33,4 +33,5 @@ export interface SonataSet {
   name: string;
   twoPiece: string;
   fivePiece: string;
+  threePiece?: string;
 }

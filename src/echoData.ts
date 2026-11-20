@@ -7,7 +7,9 @@ export type EchoTemplate = {
 };
 
 export const echoDatabase: EchoTemplate[] = [
-  // Cost 1 Echoes from your list
+  // ============================================
+  // COST 1 ECHOES
+  // ============================================
   { id: 'aero-drake', name: 'Aero Drake', cost: 1, sonataSets: ['tidebreaking-courage', 'gusts-of-welkin', 'flaming-clawprint'] },
   { id: 'aero-predator', name: 'Aero Predator', cost: 1, sonataSets: ['void-thunder', 'sierra-gale'] },
   { id: 'aero-prism', name: 'Aero Prism', cost: 1, sonataSets: ['eternal-radiance', 'tidebreaking-courage'] },
@@ -22,7 +24,7 @@ export const echoDatabase: EchoTemplate[] = [
   { id: 'chop-chop-rightless', name: 'Chop Chop: Rightless', cost: 1, sonataSets: ['frosty-resolve', 'tidebreaking-courage'] },
   { id: 'clang-bang', name: 'Clang Bang', cost: 1, sonataSets: ['freezing-frost', 'celestial-light'] },
   { id: 'cruisewing', name: 'Cruisewing', cost: 1, sonataSets: ['celestial-light', 'rejuvenating-glow', 'moonlit-clouds'] },
-  { id: 'devotee', name: 'Devotee\'s Flesh', cost: 1, sonataSets: ['gusts-of-welkin', 'windward-pilgrimage', 'flaming-clawprint'] },
+  { id: 'devotee', name: "Devotee's Flesh", cost: 1, sonataSets: ['gusts-of-welkin', 'windward-pilgrimage', 'flaming-clawprint'] },
   { id: 'diamondclaw', name: 'Diamondclaw', cost: 1, sonataSets: ['moonlit-clouds', 'lingering-tunes'] },
   { id: 'diggy-duggy', name: 'Diggy Duggy', cost: 1, sonataSets: ['eternal-radiance', 'tidebreaking-courage'] },
   { id: 'dwarf-cassowary', name: 'Dwarf Cassowary', cost: 1, sonataSets: ['sierra-gale', 'rejuvenating-glow'] },
@@ -85,8 +87,8 @@ export const echoDatabase: EchoTemplate[] = [
   { id: 'young-roseshroom', name: 'Young Roseshroom', cost: 1, sonataSets: ['sierra-gale', 'havoc-eclipse'] },
   { id: 'zig-zag', name: 'Zig Zag', cost: 1, sonataSets: ['celestial-light', 'moonlit-clouds', 'lingering-tunes'] },
   { id: 'zip-zap', name: 'Zip Zap', cost: 1, sonataSets: ['pact-of-neonlight-leap', 'rite-of-gilded-revelation', 'chromatic-foam'] },
-  
-  // Nightmare Cost 1 Echoes (from your list)
+
+  // Nightmare Cost 1 Echoes
   { id: 'nightmare-aero-predator', name: 'Nightmare: Aero Predator', cost: 1, sonataSets: ['crown-of-valor'] },
   { id: 'nightmare-baby-roseshroom', name: 'Nightmare: Baby Roseshroom', cost: 1, sonataSets: ['flamewing'] },
   { id: 'nightmare-baby-viridblaze', name: 'Nightmare: Baby Viridblaze Saurian', cost: 1, sonataSets: ['flamewing'] },
@@ -97,4 +99,66 @@ export const echoDatabase: EchoTemplate[] = [
   { id: 'nightmare-gulpuff', name: 'Nightmare: Gulpuff', cost: 1, sonataSets: ['law-of-harmony'] },
   { id: 'nightmare-havoc-warrior', name: 'Nightmare: Havoc Warrior', cost: 1, sonataSets: ['dream-of-the-lost'] },
   { id: 'nightmare-tick-tack', name: 'Nightmare: Tick Tack', cost: 1, sonataSets: ['thread-of-severed-fate'] },
+
+  // ============================================
+  // COST 3 ECHOES
+  // ============================================
+  { id: 'abyssal-gladius', name: 'Abyssal Gladius', cost: 3, sonataSets: ['midnight-veil', 'tidebreaking-courage', 'thread-of-severed-fate'] },
+  { id: 'abyssal-mercator', name: 'Abyssal Mercator', cost: 3, sonataSets: ['frosty-resolve', 'eternal-radiance'] },
+  { id: 'abyssal-patricius', name: 'Abyssal Patricius', cost: 3, sonataSets: ['frosty-resolve', 'empyrean-anthem'] },
+  { id: 'autopuppet-scout', name: 'Autopuppet Scout', cost: 3, sonataSets: ['freezing-frost', 'celestial-light'] },
+  { id: 'capitaneus', name: 'Capitaneus', cost: 3, sonataSets: ['eternal-radiance', 'gusts-of-welkin', 'windward-pilgrimage'] },
+  { id: 'carapace', name: 'Carapace', cost: 3, sonataSets: ['sierra-gale', 'moonlit-clouds'] },
+  { id: 'chasm-guardian', name: 'Chasm Guardian', cost: 3, sonataSets: ['rejuvenating-glow', 'lingering-tunes'] },
+  { id: 'chop-chop', name: 'Chop Chop', cost: 3, sonataSets: ['empyrean-anthem', 'tidebreaking-courage', 'dream-of-the-lost'] },
+  { id: 'corrosaurus', name: 'Corrosaurus', cost: 3, sonataSets: ['flaming-clawprint', 'flamewing'] },
+  { id: 'cuddle-wuddle', name: 'Cuddle Wuddle', cost: 3, sonataSets: ['frosty-resolve', 'midnight-veil'] },
+  { id: 'cyan-feathered-heron', name: 'Cyan-Feathered Heron', cost: 3, sonataSets: ['sierra-gale', 'celestial-light'] },
+  { id: 'diurnus-knight', name: 'Diurnus Knight', cost: 3, sonataSets: ['eternal-radiance', 'tidebreaking-courage'] },
+  { id: 'flautist', name: 'Flautist', cost: 3, sonataSets: ['void-thunder', 'lingering-tunes'] },
+  { id: 'flora-reindeer', name: 'Flora Reindeer', cost: 3, sonataSets: ['rite-of-gilded-revelation', 'reel-of-spliced-memories'] },
+  { id: 'fog-lionarch', name: 'Fog Lionarch', cost: 3, sonataSets: ['song-of-feathered-trace', 'heart-of-evil', 'lamp-of-nether-road'] },
+  { id: 'forbidden-bastion', name: 'Forbidden Bastion', cost: 3, sonataSets: ['song-of-feathered-trace', 'heart-of-evil', 'lamp-of-nether-road'] },
+  { id: 'formrender', name: 'Formrender', cost: 3, sonataSets: ['heart-of-sworn-vigil', 'flower-of-tinged-yearning'] },
+  { id: 'frostbite-coleoid', name: 'Frostbite Coleoid', cost: 3, sonataSets: ['halo-of-starry-radiance', 'wishes-of-quiet-snowfall'] },
+  { id: 'glacio-dreadmane', name: 'Glacio Dreadmane', cost: 3, sonataSets: ['freezing-frost', 'moonlit-clouds'] },
+  { id: 'glommoth', name: 'Glommoth', cost: 3, sonataSets: ['trailblazing-star', 'wishes-of-quiet-snowfall'] },
+  { id: 'havoc-dreadmane', name: 'Havoc Dreadmane', cost: 3, sonataSets: ['molten-rift', 'havoc-eclipse'] },
+  { id: 'hoochief', name: 'Hoochief', cost: 3, sonataSets: ['sierra-gale', 'rejuvenating-glow'] },
+  { id: 'hurriclaw', name: 'Hurriclaw', cost: 3, sonataSets: ['tidebreaking-courage', 'gusts-of-welkin', 'crown-of-valor'] },
+  { id: 'ironhoof', name: 'Ironhoof', cost: 3, sonataSets: ['pact-of-neonlight-leap', 'wishes-of-quiet-snowfall', 'reel-of-spliced-memories'] },
+  { id: 'kerasaur', name: 'Kerasaur', cost: 3, sonataSets: ['windward-pilgrimage', 'flaming-clawprint', 'flamewing'] },
+  { id: 'kronablight', name: 'Kronablight', cost: 3, sonataSets: ['trailblazing-star', 'chromatic-foam'] },
+  { id: 'lightcrusher', name: 'Lightcrusher', cost: 3, sonataSets: ['celestial-light'] },
+  { id: 'lumiscale-construct', name: 'Lumiscale Construct', cost: 3, sonataSets: ['freezing-frost', 'void-thunder'] },
+  { id: 'mining-reindeer', name: 'Mining Reindeer', cost: 3, sonataSets: ['pact-of-neonlight-leap', 'reel-of-spliced-memories'] },
+  { id: 'nocturnus-knight', name: 'Nocturnus Knight', cost: 3, sonataSets: ['midnight-veil', 'empyrean-anthem'] },
+  { id: 'pilgrims-shell', name: "Pilgrim's Shell", cost: 3, sonataSets: ['windward-pilgrimage', 'flaming-clawprint'] },
+  { id: 'questless-knight', name: 'Questless Knight', cost: 3, sonataSets: ['frosty-resolve', 'midnight-veil'] },
+  { id: 'rage-against-the-statue', name: 'Rage Against the Statue', cost: 3, sonataSets: ['eternal-radiance', 'gusts-of-welkin', 'law-of-harmony'] },
+  { id: 'reminiscence-kronaclaw', name: 'Reminiscence - Kronaclaw', cost: 3, sonataSets: ['trailblazing-star', 'chromatic-foam'] },
+  { id: 'rocksteady-guardian', name: 'Rocksteady Guardian', cost: 3, sonataSets: ['celestial-light', 'rejuvenating-glow'] },
+  { id: 'roseshroom', name: 'Roseshroom', cost: 3, sonataSets: ['freezing-frost', 'havoc-eclipse'] },
+  { id: 'sabercat-prowler', name: 'Sabercat Prowler', cost: 3, sonataSets: ['pact-of-neonlight-leap', 'rite-of-gilded-revelation', 'sound-of-true-name'] },
+  { id: 'sabercat-reaver', name: 'Sabercat Reaver', cost: 3, sonataSets: ['pact-of-neonlight-leap', 'rite-of-gilded-revelation', 'sound-of-true-name'] },
+  { id: 'skywatch-lancer', name: 'Skywatch Lancer', cost: 3, sonataSets: ['flash-of-electric-reflection', 'flower-of-tinged-yearning'] },
+  { id: 'soulfrayer', name: 'Soulfrayer', cost: 3, sonataSets: ['heart-of-sworn-vigil', 'flash-of-electric-reflection'] },
+  { id: 'spacetrek-explorer', name: 'Spacetrek Explorer', cost: 3, sonataSets: ['halo-of-starry-radiance', 'chromatic-foam', 'sound-of-true-name'] },
+  { id: 'spearback', name: 'Spearback', cost: 3, sonataSets: ['moonlit-clouds', 'lingering-tunes'] },
+  { id: 'stonewall-bracer', name: 'Stonewall Bracer', cost: 3, sonataSets: ['rejuvenating-glow', 'moonlit-clouds'] },
+  { id: 'tambourinist', name: 'Tambourinist', cost: 3, sonataSets: ['freezing-frost', 'havoc-eclipse'] },
+  { id: 'twin-nova-collapsar-blade', name: 'Twin Nova - Collapsar Blade', cost: 3, sonataSets: ['rite-of-gilded-revelation', 'trailblazing-star', 'sound-of-true-name'] },
+  { id: 'twin-nova-nebulous-cannon', name: 'Twin Nova - Nebulous Cannon', cost: 3, sonataSets: ['rite-of-gilded-revelation', 'chromatic-foam'] },
+  { id: 'violet-feathered-heron', name: 'Violet-Feathered Heron', cost: 3, sonataSets: ['molten-rift', 'void-thunder'] },
+  { id: 'viridblaze-saurian', name: 'Viridblaze Saurian', cost: 3, sonataSets: ['molten-rift', 'moonlit-clouds'] },
+  { id: 'vitreum-dancer', name: 'Vitreum Dancer', cost: 3, sonataSets: ['eternal-radiance', 'empyrean-anthem'] },
+  { id: 'voidwing-moth', name: 'Voidwing Moth', cost: 3, sonataSets: ['reel-of-spliced-memories'] },
+  { id: 'windlash-coleoid', name: 'Windlash Coleoid', cost: 3, sonataSets: ['rite-of-gilded-revelation', 'wishes-of-quiet-snowfall'] },
+
+  // Nightmare Cost 3 Echoes
+  { id: 'nightmare-cyan-feathered-heron', name: 'Nightmare: Cyan-Feathered Heron', cost: 3, sonataSets: ['law-of-harmony'] },
+  { id: 'nightmare-roseshroom', name: 'Nightmare: Roseshroom', cost: 3, sonataSets: ['thread-of-severed-fate'] },
+  { id: 'nightmare-tambourinist', name: 'Nightmare: Tambourinist', cost: 3, sonataSets: ['dream-of-the-lost'] },
+  { id: 'nightmare-violet-feathered-heron', name: 'Nightmare: Violet-Feathered Heron', cost: 3, sonataSets: ['crown-of-valor'] },
+  { id: 'nightmare-viridblaze-saurian', name: 'Nightmare: Viridblaze Saurian', cost: 3, sonataSets: ['flamewing'] },
 ];
