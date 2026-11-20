@@ -10,7 +10,7 @@ export interface SubStat {
 }
 
 export interface Echo {
-  echoId: string; // <-- Added this to link to the database
+  echoId: string; // <-- Added this
   cost: 1 | 3 | 4;
   setId: string;
   mainStat: StatType;

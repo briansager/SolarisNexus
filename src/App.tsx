@@ -16,7 +16,7 @@ const ALL_STATS: StatType[] = [
 
 function App() {
   const [echo, setEcho] = useState<Echo>({
-    echoId: 'cruisewing', // Default to Cruisewing
+    echoId: 'cruisewing', // Default Echo
     cost: 1,
     setId: 'rejuvenating-glow',
     mainStat: 'ATK',
@@ -30,8 +30,28 @@ function App() {
   const shorekeeper = charactersData[0];
   const currentScore = calculateEchoScore(echo, shorekeeper.weights);
 
-  // Filter echoes by the current cost
+  // Get all echoes with the current cost
   const availableEchoes = echoDatabase.filter(e => e.cost === echo.cost);
+  
+  // Find the currently selected Echo in the database
+  const selectedEchoData = echoDatabase.find(e => e.id === echo.echoId);
+  
+  // Filter the sonataData list to only show sets that are valid for this Echo
+  const validSonataSets = sonataData.filter(set => 
+    selectedEchoData?.sonataSets.includes(set.id)
+  );
+
+  const handleEchoChange = (newEchoId: string) => {
+    const newEchoData = echoDatabase.find(e => e.id === newEchoId);
+    // Automatically switch to the first valid set for the new echo
+    const defaultSetId = newEchoData?.sonataSets[0] || '';
+    
+    setEcho({ 
+      ...echo, 
+      echoId: newEchoId,
+      setId: defaultSetId 
+    });
+  };
 
   const handleMainStatChange = (newStat: StatType) => {
     setEcho({ ...echo, mainStat: newStat });
@@ -78,7 +98,7 @@ function App() {
             <label className="text-xs md:text-sm text-slate-400 font-bold uppercase tracking-wider block mb-2">Echo</label>
             <select 
               value={echo.echoId}
-              onChange={(e) => setEcho({ ...echo, echoId: e.target.value })}
+              onChange={(e) => handleEchoChange(e.target.value)}
               className="w-full bg-slate-700 text-white font-bold text-base md:text-lg rounded p-2 outline-none focus:ring-2 focus:ring-indigo-500 cursor-pointer"
             >
               {availableEchoes.map(e => (
@@ -104,7 +124,7 @@ function App() {
             </select>
           </div>
 
-          {/* Set Selection */}
+          {/* Set Selection (Filtered!) */}
           <div className="pt-4 border-t border-slate-700">
             <label className="text-xs md:text-sm text-slate-400 font-bold uppercase tracking-wider block mb-2">Sonata Effect</label>
             <select 
@@ -112,7 +132,7 @@ function App() {
               onChange={(e) => setEcho({ ...echo, setId: e.target.value })}
               className="w-full bg-slate-700 text-sm p-2 rounded outline-none focus:ring-2 focus:ring-indigo-500 cursor-pointer text-slate-200"
             >
-              {sonataData.map(set => (
+              {validSonataSets.map(set => (
                 <option key={set.id} value={set.id}>{set.name}</option>
               ))}
             </select>
