@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { charactersData } from './data';
+import { roverVariants } from './roverData';
 import { calculateBuildScore, getActiveSonataSets, getScoreTier } from './scoring';
-import type { Echo } from './types';
+import type { Character, Echo, RoverElement } from './types';
 import { sonataData } from './sonataData';
 import { echoDatabase } from './echoData';
 import EchoCard from './components/EchoCard';
@@ -14,13 +15,51 @@ const icons = import.meta.glob('./assets/*-icon.{png,jpg,jpeg,webp}', {
 const defaultIcon =
   "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%231e293b'/%3E%3Ctext x='50' y='50' font-family='sans-serif' font-size='40' fill='%2364748b' text-anchor='middle' dominant-baseline='middle'%3E%3F%3C/text%3E%3C/svg%3E";
 
+// 'rover-m-aero' → 'rover-m' so we can load the generic gender icon
+function baseCharacterId(id: string): string {
+  if (id.startsWith('rover-m')) return 'rover-m';
+  if (id.startsWith('rover-f')) return 'rover-f';
+  return id;
+}
+
 function getCharacterIcon(id: string): string {
+  const base = baseCharacterId(id);
   const exts = ['png', 'jpg', 'jpeg', 'webp'];
   for (const ext of exts) {
-    const key = `./assets/${id}-icon.${ext}`;
+    const key = `./assets/${base}-icon.${ext}`;
     if (icons[key]) return icons[key] as string;
   }
   return defaultIcon;
+}
+
+// Resolve a virtual id ('rover-m-aero') or base id ('aemeath') → Character with real stats
+function resolveCharacter(virtualId: string): Character {
+  // Rover virtual id: rover-{m|f}-{element}
+  const roverMatch = virtualId.match(/^(rover-[mf])-(\w+)$/);
+  if (roverMatch) {
+    const [, baseId, elementRaw] = roverMatch;
+    const element = (elementRaw.charAt(0).toUpperCase() +
+      elementRaw.slice(1)) as RoverElement;
+    const base = charactersData.find((c) => c.id === baseId);
+    const variant = roverVariants[baseId]?.[element];
+    if (base && variant) {
+      return {
+        ...base,
+        element,
+        bestWeapon: variant.bestWeapon,
+        bestEcho: variant.bestEcho,
+        recommendedSets: variant.recommendedSets,
+        mainStat4: variant.mainStat4,
+        mainStat3: variant.mainStat3,
+        mainStat1: variant.mainStat1,
+        weights: variant.weights,
+      };
+    }
+  }
+  // Normal character
+  return (
+    charactersData.find((c) => c.id === virtualId) || charactersData[0]
+  );
 }
 
 const generateSubStats = () => [
@@ -42,12 +81,29 @@ const initialEchoes: Echo[] = [
 function App() {
   const [echoes, setEchoes] = useState<Echo[]>(initialEchoes);
   const [selectedIndex, setSelectedIndex] = useState<number>(0);
-  const [selectedCharId, setSelectedCharId] = useState<string>('shorekeeper');
+  // Virtual id: 'rover-m-aero', 'aemeath', etc.
+  const [selectedCharId, setSelectedCharId] = useState<string>('rover-m-aero');
+  // Tracks the currently-picked element for each Rover gender (persists across switches)
+  const [roverElements, setRoverElements] = useState<Record<string, RoverElement>>({
+    'rover-m': 'Aero',
+    'rover-f': 'Aero',
+  });
   const [pickerOpen, setPickerOpen] = useState<boolean>(false);
 
-  const currentCharacter =
-    charactersData.find((c) => c.id === selectedCharId) || charactersData[0];
-  const currentIcon = getCharacterIcon(currentCharacter.id);
+  const currentCharacter = resolveCharacter(selectedCharId);
+  const currentIcon = getCharacterIcon(selectedCharId);
+
+  // Wrap setter so that choosing a rover virtual id updates roverElements too
+  const handleSelectCharacter = (id: string) => {
+    const m = id.match(/^(rover-[mf])-(\w+)$/);
+    if (m) {
+      const [, baseId, elementRaw] = m;
+      const element = (elementRaw.charAt(0).toUpperCase() +
+        elementRaw.slice(1)) as RoverElement;
+      setRoverElements((prev) => ({ ...prev, [baseId]: element }));
+    }
+    setSelectedCharId(id);
+  };
 
   const totalScore = calculateBuildScore(echoes, currentCharacter.weights);
   const activeSets = getActiveSonataSets(echoes);
@@ -72,7 +128,7 @@ function App() {
       </div>
 
       <header className="mb-6 max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-start md:items-center border-b border-slate-700/50 pb-4 gap-4">
-        {/* Character Selector (icon opens picker) */}
+        {/* Character Selector */}
         <div className="flex items-center gap-4 w-full md:w-auto">
           <button
             onClick={() => setPickerOpen(true)}
@@ -209,7 +265,8 @@ function App() {
       {pickerOpen && (
         <CharacterPicker
           selectedCharId={selectedCharId}
-          onSelect={setSelectedCharId}
+          roverElements={roverElements}
+          onSelect={handleSelectCharacter}
           onClose={() => setPickerOpen(false)}
         />
       )}

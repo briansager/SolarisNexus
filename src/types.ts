@@ -22,7 +22,6 @@ export type StatWeights = {
   [key in StatType]?: number;
 };
 
-// NEW: Updated to hold the build guide data
 export interface Character {
   id: string;
   name: string;
@@ -30,12 +29,33 @@ export interface Character {
   weaponType: string;
   bestWeapon: string;
   bestEcho: string;
-  recommendedSets: string; // e.g., "5-pc Molten Rift"
-  mainStat4: string; // e.g., "Crit Rate or Crit DMG"
-  mainStat3: string; // e.g., "Fusion DMG or ATK%"
-  mainStat1: string; // e.g., "ATK%"
+  recommendedSets: string;
+  mainStat4: string;
+  mainStat3: string;
+  mainStat1: string;
   weights: StatWeights;
 }
+
+// NEW: Rover-specific types (Option Y — Character stays untouched)
+export type RoverGender = 'm' | 'f';
+export type RoverElement = 'Aero' | 'Electro' | 'Havoc' | 'Spectro';
+
+export interface RoverElementVariant {
+  bestWeapon: string;
+  bestEcho: string;
+  recommendedSets: string;
+  mainStat4: string;
+  mainStat3: string;
+  mainStat1: string;
+  weights: StatWeights;
+}
+
+// Keyed by character id ('rover-m' | 'rover-f'), then by element
+export type RoverVariantsMap = {
+  [characterId: string]: {
+    [E in RoverElement]?: RoverElementVariant;
+  };
+};
 
 export interface SonataSet {
   id: string;

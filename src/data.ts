@@ -214,29 +214,19 @@ export const charactersData: Character[] = [
     mainStat4: 'Crit Rate or Crit DMG', mainStat3: 'Havoc DMG or Energy Regen', mainStat1: 'ATK%',
     weights: { 'Crit Rate': 1.0, 'Crit DMG': 1.0, 'ATK%': 0.8, 'Havoc DMG Bonus': 1.0 }
   },
+  // ROVER (M): stats resolved via src/roverData.ts based on chosen element.
   {
-    id: 'rover-aero', name: 'Rover (Aero)', element: 'Aero', weaponType: 'Sword',
-    bestWeapon: "Bloodpact's Pledge", bestEcho: 'Reminiscence: Fleurdelys', recommendedSets: '5-pc Windward Pilgrimage',
-    mainStat4: 'Crit Rate or Crit DMG', mainStat3: 'Aero DMG', mainStat1: 'ATK%',
-    weights: { 'Crit Rate': 1.0, 'Crit DMG': 1.0, 'ATK%': 0.8, 'Aero DMG Bonus': 1.0 }
+    id: 'rover-m', name: 'Rover (Male)', element: 'Aero', weaponType: 'Sword',
+    bestWeapon: '-', bestEcho: '-', recommendedSets: '-',
+    mainStat4: '-', mainStat3: '-', mainStat1: '-',
+    weights: {}
   },
+  // ROVER (F): stats resolved via src/roverData.ts based on chosen element.
   {
-    id: 'rover-electro', name: 'Rover (Electro)', element: 'Electro', weaponType: 'Sword',
-    bestWeapon: 'Blazing Brilliance', bestEcho: 'Soulfrayer', recommendedSets: '5-pc Flash of Electric Reflection',
-    mainStat4: 'Crit Rate or Crit DMG', mainStat3: 'Electro DMG', mainStat1: 'ATK%',
-    weights: { 'Crit Rate': 1.0, 'Crit DMG': 1.0, 'ATK%': 0.8, 'Electro DMG Bonus': 1.0 }
-  },
-  {
-    id: 'rover-havoc', name: 'Rover (Havoc)', element: 'Havoc', weaponType: 'Sword',
-    bestWeapon: 'Emerald of Genesis', bestEcho: 'Dreamless', recommendedSets: '5-pc Havoc Eclipse',
-    mainStat4: 'Crit Rate or Crit DMG', mainStat3: 'Havoc DMG', mainStat1: 'ATK%',
-    weights: { 'Crit Rate': 1.0, 'Crit DMG': 1.0, 'ATK%': 0.8, 'Havoc DMG Bonus': 1.0 }
-  },
-  {
-    id: 'rover-spectro', name: 'Rover (Spectro)', element: 'Spectro', weaponType: 'Sword',
-    bestWeapon: 'Emerald of Genesis', bestEcho: 'Impermanence Heron', recommendedSets: '5-pc Moonlit Clouds',
-    mainStat4: 'Crit Rate or Crit DMG', mainStat3: 'Spectro DMG or Energy Regen', mainStat1: 'ATK%',
-    weights: { 'Crit Rate': 1.0, 'Crit DMG': 1.0, 'ATK%': 0.8, 'Spectro DMG Bonus': 1.0 }
+    id: 'rover-f', name: 'Rover (Female)', element: 'Aero', weaponType: 'Sword',
+    bestWeapon: '-', bestEcho: '-', recommendedSets: '-',
+    mainStat4: '-', mainStat3: '-', mainStat1: '-',
+    weights: {}
   },
   {
     id: 'shorekeeper', name: 'Shorekeeper', element: 'Spectro', weaponType: 'Rectifier',
