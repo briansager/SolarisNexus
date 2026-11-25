@@ -2,7 +2,7 @@
 import { useState, useRef } from 'react';
 import Tesseract from 'tesseract.js';
 import type { Echo, StatType, SubStat } from '../types';
-import { echoDatabase } from '../echoData'; // We need this to guess the Echo ID based on Main Stat/Cost
+import { echoDatabase } from '../echoData';
 
 interface BuildScannerProps {
   onComplete: (echoes: Echo[]) => void;
@@ -30,11 +30,8 @@ export default function BuildScanner({ onComplete, onClose }: BuildScannerProps)
       await new Promise((resolve) => { img.onload = resolve; });
       const imageWidth = img.width;
 
-      // 2. Run OCR and request word-level bounding boxes
+      // 2. Run OCR using local Vite worker (fixes CORS/CDN issues)
       const result = await Tesseract.recognize(file, 'eng', {
-        workerPath: 'https://cdn.jsdelivr.net/npm/tesseract.js@5.0.0/dist/worker.min.js',
-        corePath: 'https://cdn.jsdelivr.net/npm/tesseract.js-core@5.0.0',
-        langPath: 'https://tessdata.projectnaptha.com/4.0.0',
         logger: (m) => {
           if (m.status === 'recognizing text') {
             setProgress(Math.round(m.progress * 100));
@@ -51,9 +48,9 @@ export default function BuildScanner({ onComplete, onClose }: BuildScannerProps)
         setError("Could not detect Echo stats. Try a clearer screenshot.");
       }
 
-    } catch (err) {
-      console.error(err);
-      setError("Failed to scan image.");
+    } catch (err: any) {
+      console.error("Tesseract Error:", err);
+      setError(`Failed to scan: ${err.message || 'Unknown error'}`);
     } finally {
       setIsScanning(false);
       if (fileInputRef.current) fileInputRef.current.value = '';
@@ -61,6 +58,9 @@ export default function BuildScanner({ onComplete, onClose }: BuildScannerProps)
   };
 
   const parseSpatialData = (data: Tesseract.Page, imageWidth: number): Echo[] => {
+    // Prevent errors if words are missing
+    if (!data.words) return [];
+
     const sliceWidth = imageWidth / 5;
     const columns: string[][] = [[], [], [], [], []];
 
@@ -71,10 +71,7 @@ export default function BuildScanner({ onComplete, onClose }: BuildScannerProps)
       columns[colIndex].push(word.text);
     });
 
-    // Convert the columns into standard Echo objects
     return columns.map((words, index) => {
-      // The official layout is Cost 4, Cost 3, Cost 3, Cost 1, Cost 1
-      // So we hardcode the expected cost based on the slot index
       let expectedCost: 1 | 3 | 4 = 1;
       if (index === 0) expectedCost = 4;
       if (index === 1 || index === 2) expectedCost = 3;
@@ -118,10 +115,9 @@ export default function BuildScanner({ onComplete, onClose }: BuildScannerProps)
       return match ? parseFloat(match[1]) : 0;
     };
 
-    // Tesseract words usually come in order of X/Y, but sometimes break up "Crit. DMG"
-    // We join them all into a single string and use Regex to find patterns
     const fullText = words.join(' ');
-    const lines = fullText.split(/(?=[A-Z])|(?<=[a-z])(?=[A-Z])/); // rough split by capitals
+    // Split by common delimiters and camelCase
+    const lines = fullText.split(/(?=[A-Z])|(?<=[a-z])(?=[A-Z])|[\n\r]+/); 
 
     let foundMainStat = false;
     
@@ -133,30 +129,27 @@ export default function BuildScanner({ onComplete, onClose }: BuildScannerProps)
       const value = extractNumber(line);
 
       if (!foundMainStat) {
+        // Ignore numbers that are too large (like HP 2280 on Cost 1s, which is base HP)
+        if (value > 1000) continue; 
         mainStat = statType;
         foundMainStat = true;
         continue;
       }
 
-      // Look for base ATK (only for cost 3/4, usually value > 100)
       if (expectedCost !== 1 && statType === 'ATK' && !flatAtk) {
         flatAtk = value;
         continue;
       }
 
-      // Sub-stats
       if (subStats.length < 5 && !subStats.some(s => s.type === statType)) {
         subStats.push({ type: statType, value });
       }
     }
 
-    // Fallbacks if OCR failed
     if (!mainStat) mainStat = expectedCost === 1 ? 'ATK' : 'Crit Rate';
     while (subStats.length < 5) subStats.push({ type: 'ATK%', value: 0 });
 
-    // Try to find a matching Echo ID from our database based on cost & main stat
     const possibleEchoes = echoDatabase.filter(e => e.cost === expectedCost);
-    // Just grab the first one as a placeholder, the user can correct it in the UI
     const bestGuessEcho = possibleEchoes[0] || { id: 'unknown', sonataSets: [] };
 
     return {
@@ -202,7 +195,7 @@ export default function BuildScanner({ onComplete, onClose }: BuildScannerProps)
             {isScanning ? `Scanning... (${progress}%)` : 'Select Image'}
           </button>
           
-          {error && <p className="text-sm text-red-400 mt-2">{error}</p>}
+          {error && <p className="text-sm text-red-400 mt-2 break-words w-full">{error}</p>}
         </div>
 
       </div>
