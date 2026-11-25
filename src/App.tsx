@@ -10,23 +10,22 @@ import CharacterPicker from './components/CharacterPicker';
 import BuildScanner from './components/BuildScanner';
 import logoImage from './assets/logo.png';
 
-// Import the new grade icons directly from assets
-import gradeSTriple from './assets/S_triple.png';
-import gradeSDouble from './assets/S_double.png';
-import gradeSSingle from './assets/S_single.png';
-import gradeA from './assets/A.png';
-import gradeB from './assets/B.png';
-import gradeDash from './assets/dash.png';
+// Safely load grade icons regardless of exact file placement/capitalization
+const gradeIconModules = import.meta.glob('./assets/**/*.{png,jpg,jpeg,webp}', {
+  eager: true,
+  import: 'default',
+});
 
-// Create a map to easily grab the right image
-const gradeIcons: Record<string, string> = {
-  'S_triple.png': gradeSTriple,
-  'S_double.png': gradeSDouble,
-  'S_single.png': gradeSSingle,
-  'A.png': gradeA,
-  'B.png': gradeB,
-  'dash.png': gradeDash,
-};
+function getGradeIcon(filename: string): string {
+  // Try to find the file in the assets folder
+  for (const key in gradeIconModules) {
+    if (key.endsWith(`/${filename}`) || key.endsWith(`\\${filename}`)) {
+      return gradeIconModules[key] as string;
+    }
+  }
+  // Fallback if not found (prevents Vercel crashes)
+  return "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext x='50' y='50' font-family='sans-serif' font-size='20' fill='%2364748b' text-anchor='middle' dominant-baseline='middle'%3EN/A%3C/text%3E%3C/svg%3E";
+}
 
 const icons = import.meta.glob('./assets/*-icon.{png,jpg,jpeg,webp}', {
   eager: true,
@@ -122,7 +121,9 @@ function App() {
   const totalScore = calculateBuildScore(echoes, currentCharacter.weights);
   const activeSets = getActiveSonataSets(echoes);
   const tier = getScoreTier(totalScore);
-  const gradeIconSrc = gradeIcons[tier.icon] || gradeDash;
+  
+  // Resolve the image dynamically
+  const gradeIconSrc = getGradeIcon(tier.icon);
 
   const handleEchoChange = (index: number, newEcho: Echo) => {
     const newEchoes = [...echoes];
@@ -140,7 +141,6 @@ function App() {
       {/* ============ TOP NAVBAR ============ */}
       <header className="sticky top-0 z-40 border-b border-slate-800 bg-slate-900/95 backdrop-blur">
         <div className="mx-auto flex h-16 w-full max-w-6xl items-center justify-between px-4 md:px-6">
-          {/* Left: logo only */}
           <a href="/" className="flex items-center" aria-label="Solaris Nexus home">
             <img
               src={logoImage}
@@ -150,7 +150,6 @@ function App() {
             />
           </a>
 
-          {/* Right: nav links */}
           <nav className="flex items-center gap-1 sm:gap-2">
             <a
               href="/"
@@ -178,7 +177,6 @@ function App() {
               Login
             </a>
 
-            {/* Language dropdown */}
             <div className="relative ml-1">
               <label htmlFor="language-select" className="sr-only">
                 Language
@@ -210,11 +208,8 @@ function App() {
         </div>
       </header>
 
-      {/* ============ MAIN ============ */}
       <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-6 md:px-6 md:py-8">
-        {/* Character header + Score/Grade */}
         <div className="mb-6 flex flex-col gap-4 border-b border-slate-700/50 pb-4 md:flex-row md:items-center md:justify-between">
-          {/* Character selector */}
           <div className="flex w-full items-center gap-4 md:w-auto">
             <button
               onClick={() => setPickerOpen(true)}
@@ -248,10 +243,7 @@ function App() {
             </div>
           </div>
 
-          {/* Score & Grade (right-aligned) */}
           <div className="flex w-full gap-3 justify-end md:w-auto items-center">
-            
-            {/* New Grade Display */}
             <div className="bg-slate-800 px-4 py-1.5 rounded-full border border-slate-700 flex items-center gap-3 shadow-sm h-12">
               <span className="text-sm text-slate-400">Grade</span>
               <img 
@@ -270,9 +262,7 @@ function App() {
           </div>
         </div>
 
-        {/* 12-col grid */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-          {/* LEFT: Echo slots + active sets */}
           <div className="lg:col-span-4 flex flex-col gap-3">
             <h2 className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-2 px-2">
               Equipped Echoes
@@ -346,7 +336,6 @@ function App() {
             </div>
           </div>
 
-          {/* RIGHT: Echo editor */}
           <div className="lg:col-span-8">
             <EchoCard
               echo={echoes[selectedIndex]}
@@ -358,7 +347,6 @@ function App() {
         </div>
       </main>
 
-      {/* Character picker modal */}
       {pickerOpen && (
         <CharacterPicker
           selectedCharId={selectedCharId}
@@ -368,7 +356,6 @@ function App() {
         />
       )}
 
-      {/* Build Scanner modal */}
       {scannerOpen && (
         <BuildScanner
           onComplete={handleBuildImported}
