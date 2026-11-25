@@ -1,3 +1,4 @@
+// src/App.tsx
 import { useState } from 'react';
 import { charactersData } from './data';
 import { roverVariants } from './roverData';
@@ -7,7 +8,7 @@ import { sonataData } from './sonataData';
 import { echoDatabase } from './echoData';
 import EchoCard from './components/EchoCard';
 import CharacterPicker from './components/CharacterPicker';
-import logoImage from './assets/logo.png'; // <--- NEW IMPORT
+import logoImage from './assets/logo.png';
 
 const icons = import.meta.glob('./assets/*-icon.{png,jpg,jpeg,webp}', {
   eager: true,
@@ -110,164 +111,216 @@ function App() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-900 text-slate-200 p-4 md:p-6 font-sans selection:bg-indigo-500/30">
-      {/* Centered Top Title & Badge */}
-      <div className="text-center mb-8 pt-4 flex flex-col items-center justify-center gap-2">
-        {/* REPLACED LOGO IMG */}
-        <img 
-          src={logoImage} 
-          alt="Solaris Nexus Logo" 
-          className="h-20 md:h-24 w-auto object-contain mb-1 drop-shadow-[0_0_15px_rgba(99,102,241,0.5)]" 
-        />
-        
-        <h1 className="text-3xl md:text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-cyan-400 tracking-tight drop-shadow-sm">
-          Solaris Nexus
-        </h1>
-        <div className="flex items-center gap-3 mt-1">
-          <span className="text-xs text-slate-400 uppercase tracking-widest font-semibold">
-            Wuthering Waves Build Tracker
-          </span>
-        </div>
-        <span className="bg-amber-900/40 text-amber-200 text-xs px-3 py-1 rounded-full border border-amber-700/50 shadow-sm mt-2">
-          🚧 Work in Progress
-        </span>
-      </div>
-
-      <header className="mb-6 max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-start md:items-center border-b border-slate-700/50 pb-4 gap-4">
-        {/* Character Selector */}
-        <div className="flex items-center gap-4 w-full md:w-auto">
-          <button
-            onClick={() => setPickerOpen(true)}
-            className="group relative flex-shrink-0 focus:outline-none"
-            aria-label="Change character"
-            title="Change character"
-          >
+    <div className="min-h-screen bg-slate-900 text-slate-200 font-sans selection:bg-indigo-500/30 flex flex-col">
+      {/* ============ TOP NAVBAR ============ */}
+      <header className="sticky top-0 z-40 border-b border-slate-800 bg-slate-900/95 backdrop-blur">
+        <div className="mx-auto flex h-16 w-full max-w-6xl items-center justify-between px-4 md:px-6">
+          {/* Left: logo only */}
+          <a href="/" className="flex items-center" aria-label="Solaris Nexus home">
             <img
-              src={currentIcon}
-              alt={currentCharacter.name}
-              className="w-14 h-14 object-cover rounded-full border-2 border-slate-600 bg-slate-800 shadow-md transition-all group-hover:border-indigo-400 group-hover:ring-2 group-hover:ring-indigo-400/40 group-focus-visible:ring-2 group-focus-visible:ring-indigo-400/60"
+              src={logoImage}
+              alt="Solaris Nexus"
+              className="h-9 md:h-10 w-auto object-contain select-none drop-shadow-[0_0_10px_rgba(99,102,241,0.35)]"
+              draggable={false}
             />
-            <span className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-slate-800 border border-slate-600 text-slate-300 text-[10px] flex items-center justify-center group-hover:bg-indigo-600 group-hover:text-white group-hover:border-indigo-500 transition-colors">
-              ▾
-            </span>
-          </button>
+          </a>
 
-          <div className="flex-1 min-w-0">
-            <button
-              onClick={() => setPickerOpen(true)}
-              className="text-lg font-bold text-white hover:text-indigo-300 transition-colors text-left"
+          {/* Right: nav links */}
+          <nav className="flex items-center gap-1 sm:gap-2">
+            <a
+              href="/"
+              aria-current="page"
+              className="rounded-md bg-slate-800/70 px-3 py-2 text-sm font-medium text-slate-100 ring-1 ring-slate-700"
             >
-              {currentCharacter.name}
-              <span className="ml-2 text-xs font-normal text-slate-400">
-                {currentCharacter.element} · {currentCharacter.weaponType}
-              </span>
-            </button>
-            <p className="text-xs text-slate-400 mt-1 truncate">
-              {currentCharacter.recommendedSets} • {currentCharacter.mainStat4}
-            </p>
-          </div>
-        </div>
+              Tracker
+            </a>
+            <a
+              href="/about"
+              className="rounded-md px-3 py-2 text-sm font-medium text-slate-300 hover:text-slate-100 hover:bg-slate-800/50 transition-colors"
+            >
+              About
+            </a>
+            <a
+              href="/login"
+              className="rounded-md px-3 py-2 text-sm font-medium text-slate-300 hover:text-slate-100 hover:bg-slate-800/50 transition-colors"
+            >
+              Login
+            </a>
 
-        {/* Score & Grade Panel */}
-        <div className="flex gap-4 w-full md:w-auto justify-end">
-          <div className="bg-slate-800 px-6 py-2 rounded-full border border-slate-700 flex items-center gap-4 shadow-sm">
-            <span className="text-sm text-slate-400">Grade</span>
-            <span className={`text-2xl font-bold ${tier.color}`}>{tier.label}</span>
-          </div>
-          <div className="bg-slate-800 px-6 py-2 rounded-full border border-slate-700 flex items-center gap-4 shadow-sm">
-            <span className="text-sm text-slate-400">Total Score</span>
-            <span className="text-2xl font-bold text-green-400">
-              {totalScore.toFixed(2)}
-            </span>
-          </div>
+            {/* Language dropdown */}
+            <div className="relative ml-1">
+              <label htmlFor="language-select" className="sr-only">
+                Language
+              </label>
+              <select
+                id="language-select"
+                defaultValue="en"
+                className="cursor-pointer appearance-none rounded-md border border-slate-700 bg-slate-800/70 px-3 py-2 pr-8 text-sm font-medium text-slate-200 hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              >
+                <option value="en">EN</option>
+                <option value="ja">JA</option>
+                <option value="zh">ZH</option>
+                <option value="ko">KO</option>
+              </select>
+              <svg
+                className="pointer-events-none absolute right-2 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+                aria-hidden="true"
+              >
+                <path
+                  fillRule="evenodd"
+                  d="M5.23 7.21a.75.75 0 011.06.02L10 11.17l3.71-3.94a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z"
+                  clipRule="evenodd"
+                />
+              </svg>
+            </div>
+          </nav>
         </div>
       </header>
 
-      <main className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-6">
-        {/* Left Sidebar - Echo Slots */}
-        <div className="lg:col-span-4 flex flex-col gap-3">
-          <h2 className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-2 px-2">
-            Equipped Echoes
-          </h2>
+      {/* ============ MAIN ============ */}
+      <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-6 md:px-6 md:py-8">
+        {/* Character header + Score/Grade */}
+        <div className="mb-6 flex flex-col gap-4 border-b border-slate-700/50 pb-4 md:flex-row md:items-center md:justify-between">
+          {/* Character selector */}
+          <div className="flex w-full items-center gap-4 md:w-auto">
+            <button
+              onClick={() => setPickerOpen(true)}
+              className="group relative flex-shrink-0 focus:outline-none"
+              aria-label="Change character"
+              title="Change character"
+            >
+              <img
+                src={currentIcon}
+                alt={currentCharacter.name}
+                className="w-14 h-14 object-cover rounded-full border-2 border-slate-600 bg-slate-800 shadow-md transition-all group-hover:border-indigo-400 group-hover:ring-2 group-hover:ring-indigo-400/40 group-focus-visible:ring-2 group-focus-visible:ring-indigo-400/60"
+              />
+              <span className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-slate-800 border border-slate-600 text-slate-300 text-[10px] flex items-center justify-center group-hover:bg-indigo-600 group-hover:text-white group-hover:border-indigo-500 transition-colors">
+                ▾
+              </span>
+            </button>
 
-          {echoes.map((echo, index) => {
-            const echoData = echoDatabase.find((e) => e.id === echo.echoId);
-            const isSelected = selectedIndex === index;
-            return (
+            <div className="flex-1 min-w-0">
               <button
-                key={index}
-                onClick={() => setSelectedIndex(index)}
-                className={`flex items-center gap-4 p-3 rounded-lg border transition-all text-left
-                  ${
-                    isSelected
-                      ? 'bg-indigo-900/40 border-indigo-500/50 shadow-[0_0_15px_rgba(99,102,241,0.2)]'
-                      : 'bg-slate-800/50 border-slate-700/50 hover:bg-slate-800'
-                  }`}
+                onClick={() => setPickerOpen(true)}
+                className="text-lg font-bold text-white hover:text-indigo-300 transition-colors text-left"
               >
-                <div
-                  className={`w-12 h-12 rounded flex items-center justify-center font-bold text-lg border
-                  ${
-                    echo.cost === 4
-                      ? 'bg-amber-900/30 border-amber-500/50 text-amber-200'
-                      : echo.cost === 3
-                      ? 'bg-blue-900/30 border-blue-500/50 text-blue-200'
-                      : 'bg-emerald-900/30 border-emerald-500/50 text-emerald-200'
-                  }`}
-                >
-                  {echo.cost}
-                </div>
-                <div className="flex-1 overflow-hidden">
-                  <p
-                    className={`text-sm font-bold truncate ${
-                      isSelected ? 'text-white' : 'text-slate-300'
-                    }`}
-                  >
-                    {echoData?.name || 'Unknown Echo'}
-                  </p>
-                  <p className="text-xs text-slate-500 truncate">{echo.mainStat}</p>
-                </div>
-              </button>
-            );
-          })}
-
-          <div className="mt-4 p-4 rounded-lg bg-slate-800/30 border border-slate-700/30">
-            <h3 className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-3">
-              Active Sonata Sets
-            </h3>
-            <div className="flex flex-col gap-2">
-              {activeSets.map((set) => {
-                const setData = sonataData.find((s) => s.id === set.setId);
-                return (
-                  <div key={set.setId} className="flex items-center gap-2">
-                    <span className="w-2 h-2 rounded-full bg-indigo-400"></span>
-                    <span className="text-sm text-indigo-200">
-                      {setData?.name || set.setId}
-                    </span>
-                    <span className="text-xs bg-slate-700 text-slate-300 px-2 py-0.5 rounded ml-auto">
-                      {set.pieces}-pc
-                    </span>
-                  </div>
-                );
-              })}
-              {activeSets.length === 0 && (
-                <span className="text-xs text-slate-500 italic">
-                  No active set bonuses
+                {currentCharacter.name}
+                <span className="ml-2 text-xs font-normal text-slate-400">
+                  {currentCharacter.element} · {currentCharacter.weaponType}
                 </span>
-              )}
+              </button>
+              <p className="text-xs text-slate-400 mt-1 truncate">
+                {currentCharacter.recommendedSets} • {currentCharacter.mainStat4}
+              </p>
+            </div>
+          </div>
+
+          {/* Score & Grade (right-aligned) */}
+          <div className="flex w-full gap-3 justify-end md:w-auto">
+            <div className="bg-slate-800 px-5 py-2 rounded-full border border-slate-700 flex items-center gap-3 shadow-sm">
+              <span className="text-sm text-slate-400">Grade</span>
+              <span className={`text-2xl font-bold ${tier.color}`}>{tier.label}</span>
+            </div>
+            <div className="bg-slate-800 px-5 py-2 rounded-full border border-slate-700 flex items-center gap-3 shadow-sm">
+              <span className="text-sm text-slate-400">Total Score</span>
+              <span className="text-2xl font-bold text-green-400">
+                {totalScore.toFixed(2)}
+              </span>
             </div>
           </div>
         </div>
 
-        <div className="lg:col-span-8">
-          <EchoCard
-            echo={echoes[selectedIndex]}
-            index={selectedIndex}
-            character={currentCharacter}
-            onChange={handleEchoChange}
-          />
+        {/* 12-col grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          {/* LEFT: Echo slots + active sets */}
+          <div className="lg:col-span-4 flex flex-col gap-3">
+            <h2 className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-2 px-2">
+              Equipped Echoes
+            </h2>
+
+            {echoes.map((echo, index) => {
+              const echoData = echoDatabase.find((e) => e.id === echo.echoId);
+              const isSelected = selectedIndex === index;
+              return (
+                <button
+                  key={index}
+                  onClick={() => setSelectedIndex(index)}
+                  className={`flex items-center gap-4 p-3 rounded-lg border transition-all text-left
+                    ${
+                      isSelected
+                        ? 'bg-indigo-900/40 border-indigo-500/50 shadow-[0_0_15px_rgba(99,102,241,0.2)]'
+                        : 'bg-slate-800/50 border-slate-700/50 hover:bg-slate-800'
+                    }`}
+                >
+                  <div
+                    className={`w-12 h-12 rounded flex items-center justify-center font-bold text-lg border
+                    ${
+                      echo.cost === 4
+                        ? 'bg-amber-900/30 border-amber-500/50 text-amber-200'
+                        : echo.cost === 3
+                        ? 'bg-blue-900/30 border-blue-500/50 text-blue-200'
+                        : 'bg-emerald-900/30 border-emerald-500/50 text-emerald-200'
+                    }`}
+                  >
+                    {echo.cost}
+                  </div>
+                  <div className="flex-1 overflow-hidden">
+                    <p
+                      className={`text-sm font-bold truncate ${
+                        isSelected ? 'text-white' : 'text-slate-300'
+                      }`}
+                    >
+                      {echoData?.name || 'Unknown Echo'}
+                    </p>
+                    <p className="text-xs text-slate-500 truncate">{echo.mainStat}</p>
+                  </div>
+                </button>
+              );
+            })}
+
+            <div className="mt-4 p-4 rounded-lg bg-slate-800/30 border border-slate-700/30">
+              <h3 className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-3">
+                Active Sonata Sets
+              </h3>
+              <div className="flex flex-col gap-2">
+                {activeSets.map((set) => {
+                  const setData = sonataData.find((s) => s.id === set.setId);
+                  return (
+                    <div key={set.setId} className="flex items-center gap-2">
+                      <span className="w-2 h-2 rounded-full bg-indigo-400"></span>
+                      <span className="text-sm text-indigo-200">
+                        {setData?.name || set.setId}
+                      </span>
+                      <span className="text-xs bg-slate-700 text-slate-300 px-2 py-0.5 rounded ml-auto">
+                        {set.pieces}-pc
+                      </span>
+                    </div>
+                  );
+                })}
+                {activeSets.length === 0 && (
+                  <span className="text-xs text-slate-500 italic">
+                    No active set bonuses
+                  </span>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* RIGHT: Echo editor */}
+          <div className="lg:col-span-8">
+            <EchoCard
+              echo={echoes[selectedIndex]}
+              index={selectedIndex}
+              character={currentCharacter}
+              onChange={handleEchoChange}
+            />
+          </div>
         </div>
       </main>
 
+      {/* Character picker modal */}
       {pickerOpen && (
         <CharacterPicker
           selectedCharId={selectedCharId}
