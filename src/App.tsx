@@ -15,7 +15,9 @@ const icons = import.meta.glob('./assets/*-icon.{png,jpg,jpeg,webp}', {
 const defaultIcon =
   "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%231e293b'/%3E%3Ctext x='50' y='50' font-family='sans-serif' font-size='40' fill='%2364748b' text-anchor='middle' dominant-baseline='middle'%3E%3F%3C/text%3E%3C/svg%3E";
 
-// 'rover-m-aero' → 'rover-m' so we can load the generic gender icon
+// The new Solaris Nexus Logo (encoded as Data URI)
+const logoDataUri = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' fill='none'%3E%3Ccircle cx='50' cy='50' r='45' stroke='url(%23grad1)' stroke-width='2' stroke-dasharray='10 5'/%3E%3Cpath d='M50 15 L60 40 L85 50 L60 60 L50 85 L40 60 L15 50 L40 40 Z' fill='url(%23grad2)'/%3E%3Ccircle cx='50' cy='50' r='8' fill='%231e293b' stroke='%23818cf8' stroke-width='2'/%3E%3Ccircle cx='50' cy='15' r='3' fill='%23818cf8'/%3E%3Ccircle cx='85' cy='50' r='3' fill='%23818cf8'/%3E%3Ccircle cx='50' cy='85' r='3' fill='%23818cf8'/%3E%3Ccircle cx='15' cy='50' r='3' fill='%23818cf8'/%3E%3Cdefs%3E%3ClinearGradient id='grad1' x1='0' y1='0' x2='100' y2='100' gradientUnits='userSpaceOnUse'%3E%3Cstop offset='0%25' stop-color='%23818cf8' stop-opacity='0.5'/%3E%3Cstop offset='100%25' stop-color='%2322d3ee' stop-opacity='0.1'/%3E%3C/linearGradient%3E%3ClinearGradient id='grad2' x1='0' y1='0' x2='100' y2='100' gradientUnits='userSpaceOnUse'%3E%3Cstop offset='0%25' stop-color='%23818cf8'/%3E%3Cstop offset='100%25' stop-color='%2322d3ee'/%3E%3C/linearGradient%3E%3C/defs%3E%3C/svg%3E";
+
 function baseCharacterId(id: string): string {
   if (id.startsWith('rover-m')) return 'rover-m';
   if (id.startsWith('rover-f')) return 'rover-f';
@@ -32,9 +34,7 @@ function getCharacterIcon(id: string): string {
   return defaultIcon;
 }
 
-// Resolve a virtual id ('rover-m-aero') or base id ('aemeath') → Character with real stats
 function resolveCharacter(virtualId: string): Character {
-  // Rover virtual id: rover-{m|f}-{element}
   const roverMatch = virtualId.match(/^(rover-[mf])-(\w+)$/);
   if (roverMatch) {
     const [, baseId, elementRaw] = roverMatch;
@@ -56,7 +56,6 @@ function resolveCharacter(virtualId: string): Character {
       };
     }
   }
-  // Normal character
   return (
     charactersData.find((c) => c.id === virtualId) || charactersData[0]
   );
@@ -81,9 +80,7 @@ const initialEchoes: Echo[] = [
 function App() {
   const [echoes, setEchoes] = useState<Echo[]>(initialEchoes);
   const [selectedIndex, setSelectedIndex] = useState<number>(0);
-  // Virtual id: 'rover-m-aero', 'aemeath', etc.
   const [selectedCharId, setSelectedCharId] = useState<string>('rover-m-aero');
-  // Tracks the currently-picked element for each Rover gender (persists across switches)
   const [roverElements, setRoverElements] = useState<Record<string, RoverElement>>({
     'rover-m': 'Aero',
     'rover-f': 'Aero',
@@ -93,7 +90,6 @@ function App() {
   const currentCharacter = resolveCharacter(selectedCharId);
   const currentIcon = getCharacterIcon(selectedCharId);
 
-  // Wrap setter so that choosing a rover virtual id updates roverElements too
   const handleSelectCharacter = (id: string) => {
     const m = id.match(/^(rover-[mf])-(\w+)$/);
     if (m) {
@@ -119,10 +115,20 @@ function App() {
     <div className="min-h-screen bg-slate-900 text-slate-200 p-4 md:p-6 font-sans selection:bg-indigo-500/30">
       {/* Centered Top Title & Badge */}
       <div className="text-center mb-8 pt-4 flex flex-col items-center justify-center gap-2">
+        <img 
+          src={logoDataUri} 
+          alt="Solaris Nexus Logo" 
+          className="w-16 h-16 mb-1 drop-shadow-[0_0_15px_rgba(99,102,241,0.5)]" 
+        />
         <h1 className="text-3xl md:text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-cyan-400 tracking-tight drop-shadow-sm">
-          Wuthering Waves Build Tracker
+          Solaris Nexus
         </h1>
-        <span className="bg-amber-900/40 text-amber-200 text-xs px-3 py-1 rounded-full border border-amber-700/50 shadow-sm">
+        <div className="flex items-center gap-3 mt-1">
+          <span className="text-xs text-slate-400 uppercase tracking-widest font-semibold">
+            Wuthering Waves Build Tracker
+          </span>
+        </div>
+        <span className="bg-amber-900/40 text-amber-200 text-xs px-3 py-1 rounded-full border border-amber-700/50 shadow-sm mt-2">
           🚧 Work in Progress
         </span>
       </div>
