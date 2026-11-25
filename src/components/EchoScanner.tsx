@@ -1,3 +1,4 @@
+// src/components/EchoScanner.tsx
 import { useState, useRef } from 'react';
 import Tesseract from 'tesseract.js';
 import type { Echo, StatType, SubStat } from '../types';
@@ -58,13 +59,18 @@ export default function EchoScanner({ onScanComplete }: EchoScannerProps) {
     const subStats: SubStat[] = [];
 
     const matchStat = (line: string): StatType | null => {
-      const cleanLine = line.toLowerCase().replace(/[^a-z0-9]/g, ''); 
+      // Normalize line: lowercase, remove extra spaces, keep dots and %
+      const cleanLine = line.toLowerCase().replace(/\s+/g, '');
       
+      // Crit stats
       if (cleanLine.includes('critrate') || cleanLine.includes('crrate')) return 'Crit Rate';
-      if (cleanLine.includes('critdmg')) return 'Crit DMG';
+      if (cleanLine.includes('critdmg') || cleanLine.includes('cdmg')) return 'Crit DMG';
+      
+      // Energy / Healing
       if (cleanLine.includes('energyregen')) return 'Energy Regen';
       if (cleanLine.includes('healingbonus')) return 'Healing Bonus';
       
+      // Elemental DMG
       if (cleanLine.includes('aerodmg')) return 'Aero DMG Bonus';
       if (cleanLine.includes('glaciodmg')) return 'Glacio DMG Bonus';
       if (cleanLine.includes('fusiondmg')) return 'Fusion DMG Bonus';
@@ -72,11 +78,13 @@ export default function EchoScanner({ onScanComplete }: EchoScannerProps) {
       if (cleanLine.includes('spectrodmg')) return 'Spectro DMG Bonus';
       if (cleanLine.includes('havocdmg')) return 'Havoc DMG Bonus';
 
+      // Attack types
       if (cleanLine.includes('basicattack')) return 'Basic Attack DMG Bonus';
       if (cleanLine.includes('heavyattack')) return 'Heavy Attack DMG Bonus';
       if (cleanLine.includes('resonanceskill')) return 'Resonance Skill DMG Bonus';
       if (cleanLine.includes('resonanceliberation')) return 'Resonance Liberation DMG Bonus';
 
+      // Flat and % stats
       if (cleanLine.includes('atk') && cleanLine.includes('%')) return 'ATK%';
       if (cleanLine.includes('atk')) return 'ATK';
       if (cleanLine.includes('hp') && cleanLine.includes('%')) return 'HP%';
@@ -88,46 +96,62 @@ export default function EchoScanner({ onScanComplete }: EchoScannerProps) {
     };
 
     const extractNumber = (line: string): number => {
+      // Match the first number, handles decimals
       const match = line.match(/(\d+(?:\.\d+)?)/);
       return match ? parseFloat(match[1]) : 0;
     };
 
-    let foundBaseAtk = false;
-    let inSubStatsSection = false;
+    // --- Parser Logic ---
+    // The Wuthering Waves Echo UI flows top-to-bottom, then left-to-right.
+    // Tesseract reads left-to-right, top-to-bottom.
+    // Structure:
+    // [Main Stat Label] (e.g., Crit. DMG) [Value] (e.g., 44%)
+    // [Base Stat Label] (e.g., ATK) [Value]
+    // [Sub-stat 1 Label] [Value]
+    // ...
+    
+    let foundMainStat = false;
+    let foundBaseStats = false;
 
     for (let i = 0; i < lines.length; i++) {
       const line = lines[i];
       const statType = matchStat(line);
-
       if (!statType) continue;
 
       const value = extractNumber(line);
 
-      if (!mainStat && !inSubStatsSection) {
-        mainStat = statType;
-        continue;
+      // 1. Look for Main Stat (First valid stat encountered)
+      if (!foundMainStat) {
+        // Ensure we aren't grabbing the character's level or UID
+        if (value > 0 && value < 1000) {
+          mainStat = statType;
+          foundMainStat = true;
+          continue;
+        }
       }
 
-      if (mainStat && !foundBaseAtk && statType === 'ATK') {
-        flatAtk = value;
-        foundBaseAtk = true;
-        continue;
+      // 2. Look for Base Stats (ATK or HP) right after Main Stat
+      if (foundMainStat && !foundBaseStats) {
+        if (statType === 'ATK' || statType === 'HP') {
+          if (statType === 'ATK') flatAtk = value;
+          foundBaseStats = true;
+          continue;
+        }
       }
 
-      if (foundBaseAtk || (mainStat && !foundBaseAtk)) {
-        inSubStatsSection = true;
-      }
-
-      if (inSubStatsSection && subStats.length < 5) {
-        if (statType === 'ATK' && value > 100) continue; 
+      // 3. Collect Sub-stats
+      if (foundMainStat) {
+        // Skip duplicates or values that are clearly base stats (> 1000)
+        if (statType === 'ATK' && value > 150) continue;
         
-        const isDuplicate = subStats.some(s => s.type === statType && s.value === value);
-        if (!isDuplicate) {
+        const isDuplicate = subStats.some(s => s.type === statType);
+        if (!isDuplicate && subStats.length < 5) {
           subStats.push({ type: statType, value });
         }
       }
     }
 
+    // Fill empty sub-stats to satisfy the Echo type (5 max)
     while (subStats.length < 5) {
       subStats.push({ type: 'ATK%', value: 0 });
     }

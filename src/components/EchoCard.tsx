@@ -1,9 +1,9 @@
+// src/components/EchoCard.tsx
 import type { Echo, StatType, SubStat, Character } from '../types';
 import { echoDatabase } from '../echoData';
 import { sonataData } from '../sonataData';
 import { calculateEchoScore } from '../scoring';
 import HoverSelect from './HoverSelect';
-import EchoScanner from './EchoScanner';
 
 const ALL_STATS: StatType[] = [
   'ATK', 'ATK%', 'HP', 'HP%', 'DEF', 'DEF%',
@@ -57,19 +57,8 @@ export default function EchoCard({ echo, index, character, onChange }: EchoCardP
     onChange(index, { ...echo, subStats: newSubStats });
   };
 
-  // NEW: Handle data coming from the OCR Scanner
-  const handleScanComplete = (scannedData: Partial<Echo>) => {
-    onChange(index, {
-      ...echo,
-      mainStat: (scannedData.mainStat as StatType) || echo.mainStat,
-      flatAtk: scannedData.flatAtk !== undefined ? scannedData.flatAtk : echo.flatAtk,
-      subStats: scannedData.subStats || echo.subStats
-    });
-  };
-
   const mainStatsList = echo.cost === 1 ? COST_1_MAIN_STATS : ALL_STATS.filter(s => !COST_1_MAIN_STATS.includes(s));
-
-  // Prepare options for HoverSelects
+  
   const echoOptions = availableEchoes.map(e => ({ value: e.id, label: e.name }));
   const costOptions = [
     { value: '1', label: 'Cost 1' },
@@ -92,14 +81,9 @@ export default function EchoCard({ echo, index, character, onChange }: EchoCardP
           </h2>
         </div>
         
-        {/* Score and Scanner Row */}
-        <div className="flex items-center gap-4 w-full sm:w-auto justify-between sm:justify-end">
-          <EchoScanner onScanComplete={handleScanComplete} />
-          
-          <div className="text-right border-l border-slate-600/50 pl-4">
-            <p className="text-xs text-slate-400 mb-0.5">Echo Score</p>
-            <p className="text-xl font-bold text-green-400 font-mono">{currentScore.toFixed(2)}</p>
-          </div>
+        <div className="text-right border-l border-slate-600/50 pl-4">
+          <p className="text-xs text-slate-400 mb-0.5">Echo Score</p>
+          <p className="text-xl font-bold text-green-400 font-mono">{currentScore.toFixed(2)}</p>
         </div>
       </div>
 
@@ -108,19 +92,11 @@ export default function EchoCard({ echo, index, character, onChange }: EchoCardP
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label className="text-[10px] text-slate-500 font-bold uppercase tracking-widest block mb-1">Select Echo</label>
-            <HoverSelect 
-              value={echo.echoId}
-              options={echoOptions}
-              onChange={handleEchoChange}
-            />
+            <HoverSelect value={echo.echoId} options={echoOptions} onChange={handleEchoChange} />
           </div>
           <div>
             <label className="text-[10px] text-slate-500 font-bold uppercase tracking-widest block mb-1">Cost Filter</label>
-            <HoverSelect 
-              value={echo.cost.toString()}
-              options={costOptions}
-              onChange={handleCostChange}
-            />
+            <HoverSelect value={echo.cost.toString()} options={costOptions} onChange={handleCostChange} />
           </div>
         </div>
 
@@ -128,10 +104,10 @@ export default function EchoCard({ echo, index, character, onChange }: EchoCardP
           <div className="flex-1">
             <label className="text-[10px] text-slate-500 font-bold uppercase tracking-widest block mb-1">Main Stat</label>
             <HoverSelect 
-              value={echo.mainStat}
-              options={mainStatOptions}
-              onChange={(val) => handleMainStatChange(val as StatType)}
-              className="border-amber-700/30 text-amber-100 font-bold"
+              value={echo.mainStat} 
+              options={mainStatOptions} 
+              onChange={(val) => handleMainStatChange(val as StatType)} 
+              className="border-amber-700/30 text-amber-100 font-bold" 
             />
           </div>
           
@@ -139,10 +115,10 @@ export default function EchoCard({ echo, index, character, onChange }: EchoCardP
             <div className="w-1/3">
               <label className="text-[10px] text-slate-500 font-bold uppercase tracking-widest block mb-1">Base ATK</label>
               <input 
-                type="number"
-                value={echo.flatAtk || 0}
-                onChange={(e) => handleFlatAtkChange(e.target.value)}
-                className="w-full bg-[#2a3040] text-sm text-white rounded-md p-2.5 border border-slate-600/50 outline-none focus:border-indigo-400 font-mono text-right"
+                type="number" 
+                value={echo.flatAtk || 0} 
+                onChange={(e) => handleFlatAtkChange(e.target.value)} 
+                className="w-full bg-[#2a3040] text-sm text-white rounded-md p-2.5 border border-slate-600/50 outline-none focus:border-indigo-400 font-mono text-right" 
               />
             </div>
           )}
@@ -150,12 +126,7 @@ export default function EchoCard({ echo, index, character, onChange }: EchoCardP
 
         <div>
           <label className="text-[10px] text-slate-500 font-bold uppercase tracking-widest block mb-1">Sonata Effect</label>
-          <HoverSelect 
-            value={echo.setId}
-            options={setOptions}
-            onChange={(val) => onChange(index, { ...echo, setId: val })}
-            className="text-indigo-200"
-          />
+          <HoverSelect value={echo.setId} options={setOptions} onChange={(val) => onChange(index, { ...echo, setId: val })} className="text-indigo-200" />
         </div>
 
         <div className="mt-2">
@@ -167,21 +138,16 @@ export default function EchoCard({ echo, index, character, onChange }: EchoCardP
             {echo.subStats.map((stat, i) => (
               <div key={i} className="flex items-center gap-2 p-2 hover:bg-[#1f2433] transition-colors">
                 <span className="text-slate-500 text-xs w-4 text-center">+</span>
-                <select 
-                  value={stat.type}
-                  onChange={(e) => handleSubStatChange(i, 'type', e.target.value)}
-                  className="flex-1 bg-transparent text-sm text-slate-300 outline-none cursor-pointer appearance-none"
-                >
+                <select value={stat.type} onChange={(e) => handleSubStatChange(i, 'type', e.target.value)} className="flex-1 bg-transparent text-sm text-slate-300 outline-none cursor-pointer appearance-none">
                   {ALL_STATS.map(s => <option key={s} value={s} className="bg-[#1a1f2e]">{s}</option>)}
                 </select>
-
                 <div className="flex items-center bg-[#2a3040] rounded border border-slate-600/50 focus-within:border-indigo-400 w-24">
                   <input 
                     type="number" 
-                    step="0.1"
-                    value={stat.value}
-                    onChange={(e) => handleSubStatChange(i, 'value', parseFloat(e.target.value) || 0)}
-                    className="w-full bg-transparent text-sm p-1.5 text-right font-mono text-white outline-none"
+                    step="0.1" 
+                    value={stat.value} 
+                    onChange={(e) => handleSubStatChange(i, 'value', parseFloat(e.target.value) || 0)} 
+                    className="w-full bg-transparent text-sm p-1.5 text-right font-mono text-white outline-none" 
                   />
                   <span className="text-slate-500 text-xs px-2">%</span>
                 </div>
