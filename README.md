@@ -1,41 +1,40 @@
-# Wuthering Waves Build Tracker
+<div align="center">
+  <img src="https://raw.githubusercontent.com/briansager/SolarisNexus/main/public/logo.svg" alt="Solaris Nexus Logo" width="120" />
+  <h1>Solaris Nexus</h1>
+  <p>A Wuthering Waves build tracker and Echo scoring tool.</p>
 
-A web application to track, score, and optimize character builds for the game Wuthering Waves. 
+  <!-- Add these badges once you have a license or specific deployment status -->
+  <img src="https://img.shields.io/badge/status-Work%20In%20Progress-amber" alt="Work in Progress" />
+  <img src="https://img.shields.io/badge/React-18-blue" alt="React 18" />
+  <img src="https://img.shields.io/badge/TypeScript-5-blue" alt="TypeScript" />
+  <img src="https://img.shields.io/badge/Vite-5-purple" alt="Vite" />
+</div>
 
-🔗 **Live Demo:** [https://wuthering-waves-build-tracker.vercel.app/](https://wuthering-waves-build-tracker.vercel.app/)
+---
 
-> 🚧 **Project Status: Work in Progress** 
-> The core 5-echo build calculation, custom UI dropdowns, and Sonata Set detection are fully functional. I am currently refining the OCR-based Echo Scanner and adding full character/weapon databases.
+## 🌐 Live Demo
+[**Solaris Nexus**](https://solarisnexus.vercel.app/)
+
+## 📖 About
+Solaris Nexus is a web app designed to help Wuthering Waves players track and score their character builds (Echoes). It features a 5-Echo Build Tracker (4-3-3-1-1 configuration) and an experimental OCR scanning system. 
+
+It is built as a personal hobby tool, is fully open-source, and serves as a portfolio piece for internship applications.
 
 ## 🛠️ Tech Stack
-- **Frontend:** React, TypeScript, Vite
-- **Styling:** Tailwind CSS (Fully responsive)
-- **OCR Processing:** Tesseract.js (Client-side, zero server uploads)
-- **Deployment:** Vercel (CI/CD from `main` branch)
+- **Framework:** React + TypeScript + Vite
+- **Styling:** Tailwind CSS (Mobile responsive, custom dark-theme UI)
+- **Libraries:** `tesseract.js` (for client-side OCR image scanning)
+- **Deployment:** Vercel (auto-deploys from the `main` branch)
 
-## 🧠 Challenges Solved
-- **Strict TypeScript Builds:** Implemented rigorous type safety for stat weights and echo data structures to ensure Vercel deployments never fail due to strict `tsc` checks.
-- **Client-Side OCR:** Integrated Tesseract.js to allow users to upload Echo screenshots. Wrote a custom regex parser to extract Main Stats, Base ATK, and Sub-Stats directly in the browser without saving the image to a server.
-- **Complex State Management:** Architected a 5-slot Echo array state that dynamically calculates total build scores, individual echo scores, and active Sonata Set bonuses (2-piece and 5-piece).
-- **Custom Hover UI:** Built a custom hover-delay dropdown component to mimic in-game selection menus, bypassing clunky native HTML `<select>` elements.
+## 🚀 Features
+- 5-Echo Build Tracker (4-3-3-1-1)
+- Character-specific stat weights and scoring
+- Dynamic Element Filter and Character Picker
+- Rover (Male/Female) multi-element support
+- Sonata Set tracking
+- OCR Echo Scanning (Work in progress)
 
-## 🚀 Roadmap
-- [x] 5-Echo build array structure (4-3-3-1-1)
-- [x] Dynamic Echo database (Cost 1, 3, 4)
-- [x] Sonata effect tracking and display
-- [x] Character selection with dynamic stat weights
-- [x] OCR Screenshot scanning (Beta)
-- [ ] Weapon and Waveband tracking
-- [ ] Full character icon asset compilation
-- [ ] Refine OCR accuracy for Main Stats
-
-## 💻 Running Locally
-```bash
-# Clone the repository
-git clone https://github.com/briansager/wuwa-build-tracker.git
-
-# Install dependencies
-npm install
-
-# Start the development server
-npm run dev
+## 💻 Local Setup
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/briansager/SolarisNexus.git
