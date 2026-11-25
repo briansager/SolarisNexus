@@ -41,10 +41,13 @@ export function getActiveSonataSets(echoes: Echo[]): { setId: string, pieces: nu
 }
 
 // Grade the score
-export function getScoreTier(score: number): { label: string, color: string } {
-  if (score >= 200) return { label: 'S', color: 'text-yellow-400' };
-  if (score >= 150) return { label: 'A', color: 'text-purple-400' };
-  if (score >= 100) return { label: 'B', color: 'text-blue-400' };
-  if (score >= 50) return { label: 'C', color: 'text-green-400' };
-  return { label: 'D', color: 'text-slate-400' };
+export function getScoreTier(score: number): { label: string, color: string, icon: string } {
+  // Note: Tune these thresholds to fit your data's distribution
+  if (score >= 220) return { label: 'S+', color: 'text-yellow-400', icon: 'S_triple.png' };
+  if (score >= 200) return { label: 'S', color: 'text-yellow-400', icon: 'S_double.png' };
+  if (score >= 180) return { label: 'S-', color: 'text-yellow-300', icon: 'S_single.png' };
+  if (score >= 140) return { label: 'A', color: 'text-purple-400', icon: 'A.png' };
+  if (score >= 100) return { label: 'B', color: 'text-blue-400', icon: 'B.png' };
+  if (score >= 50) return { label: 'C', color: 'text-green-400', icon: 'dash.png' }; // Fallback if they don't have C
+  return { label: 'D', color: 'text-slate-400', icon: 'dash.png' };
 }

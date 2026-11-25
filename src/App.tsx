@@ -1,4 +1,3 @@
-// src/App.tsx
 import { useState } from 'react';
 import { charactersData } from './data';
 import { roverVariants } from './roverData';
@@ -10,6 +9,24 @@ import EchoCard from './components/EchoCard';
 import CharacterPicker from './components/CharacterPicker';
 import BuildScanner from './components/BuildScanner';
 import logoImage from './assets/logo.png';
+
+// Import the new grade icons directly from assets
+import gradeSTriple from './assets/S_triple.png';
+import gradeSDouble from './assets/S_double.png';
+import gradeSSingle from './assets/S_single.png';
+import gradeA from './assets/A.png';
+import gradeB from './assets/B.png';
+import gradeDash from './assets/dash.png';
+
+// Create a map to easily grab the right image
+const gradeIcons: Record<string, string> = {
+  'S_triple.png': gradeSTriple,
+  'S_double.png': gradeSDouble,
+  'S_single.png': gradeSSingle,
+  'A.png': gradeA,
+  'B.png': gradeB,
+  'dash.png': gradeDash,
+};
 
 const icons = import.meta.glob('./assets/*-icon.{png,jpg,jpeg,webp}', {
   eager: true,
@@ -105,6 +122,7 @@ function App() {
   const totalScore = calculateBuildScore(echoes, currentCharacter.weights);
   const activeSets = getActiveSonataSets(echoes);
   const tier = getScoreTier(totalScore);
+  const gradeIconSrc = gradeIcons[tier.icon] || gradeDash;
 
   const handleEchoChange = (index: number, newEcho: Echo) => {
     const newEchoes = [...echoes];
@@ -113,8 +131,6 @@ function App() {
   };
 
   const handleBuildImported = (importedEchoes: Echo[]) => {
-    // Assuming the imported echoes have cost matching the slots, 
-    // we merge them in or just replace. For now, let's replace everything.
     setEchoes(importedEchoes);
     setScannerOpen(false);
   };
@@ -161,8 +177,12 @@ function App() {
             >
               Login
             </a>
+
+            {/* Language dropdown */}
             <div className="relative ml-1">
-              <label htmlFor="language-select" className="sr-only">Language</label>
+              <label htmlFor="language-select" className="sr-only">
+                Language
+              </label>
               <select
                 id="language-select"
                 defaultValue="en"
@@ -173,8 +193,17 @@ function App() {
                 <option value="zh">ZH</option>
                 <option value="ko">KO</option>
               </select>
-              <svg className="pointer-events-none absolute right-2 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" viewBox="0 0 20 20" fill="currentColor">
-                <path fillRule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.17l3.71-3.94a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clipRule="evenodd" />
+              <svg
+                className="pointer-events-none absolute right-2 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+                aria-hidden="true"
+              >
+                <path
+                  fillRule="evenodd"
+                  d="M5.23 7.21a.75.75 0 011.06.02L10 11.17l3.71-3.94a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z"
+                  clipRule="evenodd"
+                />
               </svg>
             </div>
           </nav>
@@ -183,19 +212,22 @@ function App() {
 
       {/* ============ MAIN ============ */}
       <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-6 md:px-6 md:py-8">
+        {/* Character header + Score/Grade */}
         <div className="mb-6 flex flex-col gap-4 border-b border-slate-700/50 pb-4 md:flex-row md:items-center md:justify-between">
+          {/* Character selector */}
           <div className="flex w-full items-center gap-4 md:w-auto">
             <button
               onClick={() => setPickerOpen(true)}
               className="group relative flex-shrink-0 focus:outline-none"
               aria-label="Change character"
+              title="Change character"
             >
               <img
                 src={currentIcon}
                 alt={currentCharacter.name}
-                className="w-14 h-14 object-cover rounded-full border-2 border-slate-600 bg-slate-800 shadow-md transition-all group-hover:border-indigo-400 group-hover:ring-2 group-hover:ring-indigo-400/40"
+                className="w-14 h-14 object-cover rounded-full border-2 border-slate-600 bg-slate-800 shadow-md transition-all group-hover:border-indigo-400 group-hover:ring-2 group-hover:ring-indigo-400/40 group-focus-visible:ring-2 group-focus-visible:ring-indigo-400/60"
               />
-              <span className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-slate-800 border border-slate-600 text-slate-300 text-[10px] flex items-center justify-center group-hover:bg-indigo-600 group-hover:text-white transition-colors">
+              <span className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-slate-800 border border-slate-600 text-slate-300 text-[10px] flex items-center justify-center group-hover:bg-indigo-600 group-hover:text-white group-hover:border-indigo-500 transition-colors">
                 ▾
               </span>
             </button>
@@ -216,21 +248,36 @@ function App() {
             </div>
           </div>
 
-          <div className="flex w-full gap-3 justify-end md:w-auto">
-            <div className="bg-slate-800 px-5 py-2 rounded-full border border-slate-700 flex items-center gap-3 shadow-sm">
+          {/* Score & Grade (right-aligned) */}
+          <div className="flex w-full gap-3 justify-end md:w-auto items-center">
+            
+            {/* New Grade Display */}
+            <div className="bg-slate-800 px-4 py-1.5 rounded-full border border-slate-700 flex items-center gap-3 shadow-sm h-12">
               <span className="text-sm text-slate-400">Grade</span>
-              <span className={`text-2xl font-bold ${tier.color}`}>{tier.label}</span>
+              <img 
+                src={gradeIconSrc} 
+                alt={tier.label} 
+                className="h-8 w-auto object-contain drop-shadow-md"
+              />
             </div>
-            <div className="bg-slate-800 px-5 py-2 rounded-full border border-slate-700 flex items-center gap-3 shadow-sm">
+
+            <div className="bg-slate-800 px-5 py-2 rounded-full border border-slate-700 flex items-center gap-3 shadow-sm h-12">
               <span className="text-sm text-slate-400">Total Score</span>
-              <span className="text-2xl font-bold text-green-400">{totalScore.toFixed(2)}</span>
+              <span className="text-2xl font-bold text-green-400">
+                {totalScore.toFixed(2)}
+              </span>
             </div>
           </div>
         </div>
 
+        {/* 12-col grid */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          {/* LEFT: Echo slots + active sets */}
           <div className="lg:col-span-4 flex flex-col gap-3">
-            <h2 className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-2 px-2">Equipped Echoes</h2>
+            <h2 className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-2 px-2">
+              Equipped Echoes
+            </h2>
+
             {echoes.map((echo, index) => {
               const echoData = echoDatabase.find((e) => e.id === echo.echoId);
               const isSelected = selectedIndex === index;
@@ -238,17 +285,31 @@ function App() {
                 <button
                   key={index}
                   onClick={() => setSelectedIndex(index)}
-                  className={`flex items-center gap-4 p-3 rounded-lg border transition-all text-left ${
-                    isSelected ? 'bg-indigo-900/40 border-indigo-500/50 shadow-[0_0_15px_rgba(99,102,241,0.2)]' : 'bg-slate-800/50 border-slate-700/50 hover:bg-slate-800'
-                  }`}
+                  className={`flex items-center gap-4 p-3 rounded-lg border transition-all text-left
+                    ${
+                      isSelected
+                        ? 'bg-indigo-900/40 border-indigo-500/50 shadow-[0_0_15px_rgba(99,102,241,0.2)]'
+                        : 'bg-slate-800/50 border-slate-700/50 hover:bg-slate-800'
+                    }`}
                 >
-                  <div className={`w-12 h-12 rounded flex items-center justify-center font-bold text-lg border ${
-                    echo.cost === 4 ? 'bg-amber-900/30 border-amber-500/50 text-amber-200' : echo.cost === 3 ? 'bg-blue-900/30 border-blue-500/50 text-blue-200' : 'bg-emerald-900/30 border-emerald-500/50 text-emerald-200'
-                  }`}>
+                  <div
+                    className={`w-12 h-12 rounded flex items-center justify-center font-bold text-lg border
+                    ${
+                      echo.cost === 4
+                        ? 'bg-amber-900/30 border-amber-500/50 text-amber-200'
+                        : echo.cost === 3
+                        ? 'bg-blue-900/30 border-blue-500/50 text-blue-200'
+                        : 'bg-emerald-900/30 border-emerald-500/50 text-emerald-200'
+                    }`}
+                  >
                     {echo.cost}
                   </div>
                   <div className="flex-1 overflow-hidden">
-                    <p className={`text-sm font-bold truncate ${isSelected ? 'text-white' : 'text-slate-300'}`}>
+                    <p
+                      className={`text-sm font-bold truncate ${
+                        isSelected ? 'text-white' : 'text-slate-300'
+                      }`}
+                    >
                       {echoData?.name || 'Unknown Echo'}
                     </p>
                     <p className="text-xs text-slate-500 truncate">{echo.mainStat}</p>
@@ -258,23 +319,34 @@ function App() {
             })}
 
             <div className="mt-4 p-4 rounded-lg bg-slate-800/30 border border-slate-700/30">
-              <h3 className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-3">Active Sonata Sets</h3>
+              <h3 className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-3">
+                Active Sonata Sets
+              </h3>
               <div className="flex flex-col gap-2">
                 {activeSets.map((set) => {
                   const setData = sonataData.find((s) => s.id === set.setId);
                   return (
                     <div key={set.setId} className="flex items-center gap-2">
                       <span className="w-2 h-2 rounded-full bg-indigo-400"></span>
-                      <span className="text-sm text-indigo-200">{setData?.name || set.setId}</span>
-                      <span className="text-xs bg-slate-700 text-slate-300 px-2 py-0.5 rounded ml-auto">{set.pieces}-pc</span>
+                      <span className="text-sm text-indigo-200">
+                        {setData?.name || set.setId}
+                      </span>
+                      <span className="text-xs bg-slate-700 text-slate-300 px-2 py-0.5 rounded ml-auto">
+                        {set.pieces}-pc
+                      </span>
                     </div>
                   );
                 })}
-                {activeSets.length === 0 && <span className="text-xs text-slate-500 italic">No active set bonuses</span>}
+                {activeSets.length === 0 && (
+                  <span className="text-xs text-slate-500 italic">
+                    No active set bonuses
+                  </span>
+                )}
               </div>
             </div>
           </div>
 
+          {/* RIGHT: Echo editor */}
           <div className="lg:col-span-8">
             <EchoCard
               echo={echoes[selectedIndex]}
@@ -286,6 +358,7 @@ function App() {
         </div>
       </main>
 
+      {/* Character picker modal */}
       {pickerOpen && (
         <CharacterPicker
           selectedCharId={selectedCharId}
@@ -295,6 +368,7 @@ function App() {
         />
       )}
 
+      {/* Build Scanner modal */}
       {scannerOpen && (
         <BuildScanner
           onComplete={handleBuildImported}
