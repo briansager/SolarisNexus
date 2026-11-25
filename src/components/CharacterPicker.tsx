@@ -3,7 +3,14 @@ import { charactersData } from '../data';
 import { roverVariants } from '../roverData';
 import type { RoverElement, RoverGender } from '../types';
 
-const icons = import.meta.glob('../assets/*-icon.{png,jpg,jpeg,webp}', {
+// 1. Character icons (still in src/assets/)
+const charIcons = import.meta.glob('../assets/*-icon.{png,jpg,jpeg,webp}', {
+  eager: true,
+  import: 'default',
+});
+
+// 2. Game icons (elements and genders in src/assets/gameicons/)
+const gameIcons = import.meta.glob('../assets/gameicons/*.png', {
   eager: true,
   import: 'default',
 });
@@ -23,12 +30,18 @@ function getCharacterIcon(id: string): string {
   const exts = ['png', 'jpg', 'jpeg', 'webp'];
   for (const ext of exts) {
     const key = `../assets/${base}-icon.${ext}`;
-    if (icons[key]) return icons[key] as string;
+    if (charIcons[key]) return charIcons[key] as string;
   }
   return defaultIcon;
 }
 
-// Element metadata (name + color + icon glyph)
+// Loads the official circular element icons from the gameicons folder
+function getElementIcon(elementName: string): string {
+  // elementName is e.g., 'Aero', 'Electro'. File is e.g., 'aero-icon.png'
+  const fileName = `${elementName.toLowerCase()}-icon.png`;
+  return (gameIcons[`../assets/gameicons/${fileName}`] as string) || defaultIcon;
+}
+
 const ELEMENTS: {
   name: string;
   dot: string;
@@ -46,22 +59,9 @@ const ELEMENTS: {
 
 const ROVER_ELEMENT_ORDER: RoverElement[] = ['Aero', 'Electro', 'Havoc', 'Spectro'];
 
-// Simple inline element glyphs (minimal, no assets needed).
-const ELEMENT_GLYPH: Record<RoverElement, string> = {
-  Aero: '🌪',
-  Electro: '⚡',
-  Havoc: '🌑',
-  Spectro: '☀',
-};
-
-const GENDER_GLYPH: Record<RoverGender, string> = {
-  m: '♂',
-  f: '♀',
-};
-
 interface CharacterPickerProps {
-  selectedCharId: string;              // may be a virtual id like 'rover-m-aero'
-  roverElements: Record<string, RoverElement>; // { 'rover-m': 'Aero', 'rover-f': 'Aero' }
+  selectedCharId: string;
+  roverElements: Record<string, RoverElement>;
   onSelect: (id: string) => void;
   onClose: () => void;
 }
@@ -74,10 +74,8 @@ export default function CharacterPicker({
 }: CharacterPickerProps) {
   const [search, setSearch] = useState('');
   const [elementFilter, setElementFilter] = useState<string>('All');
-  // Step state: null = grid view; { gender } = element-picker step for that Rover
   const [roverStep, setRoverStep] = useState<{ gender: RoverGender } | null>(null);
 
-  // Close on Escape
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose();
@@ -86,7 +84,6 @@ export default function CharacterPicker({
     return () => window.removeEventListener('keydown', onKey);
   }, [onClose]);
 
-  // Lock body scroll while open
   useEffect(() => {
     const prev = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
@@ -95,10 +92,8 @@ export default function CharacterPicker({
     };
   }, []);
 
-  // Determine which element a char "shows as" for filter purposes
   const effectiveElement = (charId: string, baseElement: string): string => {
     if (baseCharacterId(charId) === charId && roverVariants[charId]) {
-      // Base rover id without element suffix — use stored element
       return roverElements[charId] || 'Aero';
     }
     return baseElement;
@@ -107,7 +102,6 @@ export default function CharacterPicker({
   const grouped = useMemo(() => {
     const q = search.trim().toLowerCase();
 
-    // Exclude Rover entries from normal grid — they're handled specially below
     let filtered = charactersData.filter((c) => {
       const isRover = c.id === 'rover-m' || c.id === 'rover-f';
       if (isRover) return false;
@@ -116,7 +110,6 @@ export default function CharacterPicker({
       return true;
     });
 
-    // Only include Rovers if they match the search AND the element filter (by their current element)
     const rovers = charactersData.filter((c) => {
       const isRover = c.id === 'rover-m' || c.id === 'rover-f';
       if (!isRover) return false;
@@ -153,7 +146,6 @@ export default function CharacterPicker({
         {/* ===================== STEP 1: CHARACTER GRID ===================== */}
         {!roverStep && (
           <>
-            {/* Header */}
             <div className="flex items-center justify-between gap-3 px-5 py-4 border-b border-slate-700/70">
               <h2 className="text-lg font-bold text-white tracking-tight whitespace-nowrap">
                 Select Character
@@ -175,7 +167,6 @@ export default function CharacterPicker({
               </button>
             </div>
 
-            {/* Element filter chips */}
             <div className="px-5 py-3 border-b border-slate-700/70 flex flex-wrap items-center gap-1.5">
               <span className="text-[10px] uppercase tracking-widest text-slate-500 font-bold mr-1">
                 Element
@@ -198,13 +189,12 @@ export default function CharacterPicker({
                     elementFilter === el.name ? el.chipActive : el.chip
                   }`}
                 >
-                  <span className={`w-1.5 h-1.5 rounded-full ${el.dot}`} />
+                  <img src={getElementIcon(el.name)} alt="" className="w-3.5 h-3.5 rounded-full object-cover" />
                   {el.name}
                 </button>
               ))}
             </div>
 
-            {/* Scrollable grid */}
             <div className="overflow-y-auto px-5 py-4 space-y-6">
               {grouped.length === 0 && (
                 <p className="text-center text-slate-500 italic py-12">
@@ -215,7 +205,7 @@ export default function CharacterPicker({
               {grouped.map((group) => (
                 <section key={group.name}>
                   <div className="flex items-center gap-2 mb-3">
-                    <span className={`w-2.5 h-2.5 rounded-full ${group.dot}`} />
+                    <img src={getElementIcon(group.name)} alt="" className="w-4 h-4 rounded-full object-cover" />
                     <h3 className={`text-xs font-bold uppercase tracking-widest ${group.text}`}>
                       {group.name}
                     </h3>
@@ -231,7 +221,6 @@ export default function CharacterPicker({
                       const currentEl = isRover
                         ? roverElements[char.id] || 'Aero'
                         : char.element;
-                      // selected check: for rovers, match virtual id; otherwise base id
                       const isSelected = isRover
                         ? selectedCharId.startsWith(`${char.id}-`)
                         : selectedCharId === char.id;
@@ -241,7 +230,6 @@ export default function CharacterPicker({
                           key={char.id}
                           onClick={() => {
                             if (isRover) {
-                              // Flip to element step
                               setRoverStep({
                                 gender: char.id === 'rover-m' ? 'm' : 'f',
                               });
@@ -272,15 +260,12 @@ export default function CharacterPicker({
                               </span>
                             )}
                             {isRover && (
-                              <span
-                                className={`absolute bottom-0 left-0 w-5 h-5 rounded-full bg-slate-900 border border-slate-700 text-[10px] flex items-center justify-center ${
-                                  ELEMENTS.find((e) => e.name === currentEl)?.text ??
-                                  'text-slate-300'
-                                }`}
+                              <img
+                                src={getElementIcon(currentEl)}
+                                alt={currentEl}
+                                className="absolute bottom-0 left-0 w-5 h-5 rounded-full bg-slate-900 border border-slate-700 p-0.5"
                                 title={`Current element: ${currentEl}`}
-                              >
-                                {ELEMENT_GLYPH[currentEl as RoverElement] ?? '·'}
-                              </span>
+                              />
                             )}
                           </div>
                           <span
@@ -305,7 +290,6 @@ export default function CharacterPicker({
         {/* ===================== STEP 2: ROVER ELEMENT ===================== */}
         {roverStep && (
           <>
-            {/* Header — mirrors in-game "Rover: Element" style */}
             <div className="flex items-center justify-between gap-3 px-5 py-4 border-b border-slate-700/70">
               <div className="flex items-center gap-3">
                 <button
@@ -314,8 +298,10 @@ export default function CharacterPicker({
                 >
                   ← Back
                 </button>
-                <h2 className="text-lg font-bold text-white tracking-tight">
-                  Rover: {roverElements[`rover-${roverStep.gender}`] || 'Aero'}
+                <h2 className="text-lg font-bold text-white tracking-tight flex items-center gap-2">
+                  Rover: 
+                  <img src={getElementIcon(roverElements[`rover-${roverStep.gender}`] || 'Aero')} alt="" className="w-5 h-5 rounded-full inline" />
+                  {roverElements[`rover-${roverStep.gender}`] || 'Aero'}
                 </h2>
               </div>
               <button
@@ -328,14 +314,12 @@ export default function CharacterPicker({
             </div>
 
             <div className="px-5 py-8 flex flex-col items-center gap-8">
-              {/* Element icons row — 4 elements + 2 genders, mirroring the screenshot */}
               <div className="flex items-center justify-center gap-3 flex-wrap">
                 {ROVER_ELEMENT_ORDER.map((elName) => {
-                  const currentEl =
-                    roverElements[`rover-${roverStep.gender}`] || 'Aero';
+                  const currentEl = roverElements[`rover-${roverStep.gender}`] || 'Aero';
                   const isActive = currentEl === elName;
                   const variant = roverVariants[`rover-${roverStep.gender}`]?.[elName];
-                  if (!variant) return null; // element not available for this rover
+                  if (!variant) return null;
                   return (
                     <button
                       key={elName}
@@ -343,48 +327,40 @@ export default function CharacterPicker({
                         onSelect(`rover-${roverStep.gender}-${elName.toLowerCase()}`);
                         onClose();
                       }}
-                      className={`relative w-14 h-14 rounded-full flex items-center justify-center text-xl border-2 transition-all ${
+                      className={`relative w-16 h-16 rounded-full flex items-center justify-center border-2 transition-all p-1 ${
                         isActive
                           ? 'border-indigo-400 bg-slate-800 ring-2 ring-indigo-400/40 scale-105'
                           : 'border-slate-700 bg-slate-800/60 hover:border-slate-500 hover:scale-105'
                       }`}
                       title={elName}
                     >
-                      <span
-                        className={
-                          ELEMENTS.find((e) => e.name === elName)?.text ??
-                          'text-slate-200'
-                        }
-                      >
-                        {ELEMENT_GLYPH[elName]}
-                      </span>
+                      <img src={getElementIcon(elName)} alt={elName} className="w-full h-full object-cover rounded-full" />
                     </button>
                   );
                 })}
 
-                {/* Divider */}
                 <div className="w-px h-8 bg-slate-700/70 mx-1" />
 
-                {/* Gender toggles — switch gender while keeping current element */}
                 {(['f', 'm'] as RoverGender[]).map((g) => {
                   const isActive = roverStep.gender === g;
+                  // We don't have official gender icons in the screenshot, so we fallback to the text glyphs for now
+                  // Once you have them, we can add them to gameicons/ and map them here.
                   return (
                     <button
                       key={g}
                       onClick={() => {
-                        const currentEl =
-                          roverElements[`rover-${roverStep.gender}`] || 'Aero';
+                        const currentEl = roverElements[`rover-${roverStep.gender}`] || 'Aero';
                         onSelect(`rover-${g}-${currentEl.toLowerCase()}`);
                         onClose();
                       }}
-                      className={`w-14 h-14 rounded-full flex items-center justify-center text-xl border-2 transition-all ${
+                      className={`w-16 h-16 rounded-full flex items-center justify-center text-2xl border-2 transition-all ${
                         isActive
                           ? 'border-indigo-400 bg-slate-800 ring-2 ring-indigo-400/40 scale-105'
                           : 'border-slate-700 bg-slate-800/60 hover:border-slate-500 hover:scale-105'
                       }`}
                       title={g === 'm' ? 'Male' : 'Female'}
                     >
-                      <span className="text-slate-200">{GENDER_GLYPH[g]}</span>
+                      <span className="text-slate-200">{g === 'm' ? '♂' : '♀'}</span>
                     </button>
                   );
                 })}
