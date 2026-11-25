@@ -3,13 +3,11 @@ import { charactersData } from '../data';
 import { roverVariants } from '../roverData';
 import type { RoverElement, RoverGender } from '../types';
 
-// 1. Character icons (still in src/assets/)
 const charIcons = import.meta.glob('../assets/*-icon.{png,jpg,jpeg,webp}', {
   eager: true,
   import: 'default',
 });
 
-// 2. Game icons (elements and genders in src/assets/gameicons/)
 const gameIcons = import.meta.glob('../assets/gameicons/*.png', {
   eager: true,
   import: 'default',
@@ -18,7 +16,6 @@ const gameIcons = import.meta.glob('../assets/gameicons/*.png', {
 const defaultIcon =
   "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%231e293b'/%3E%3Ctext x='50' y='50' font-family='sans-serif' font-size='40' fill='%2364748b' text-anchor='middle' dominant-baseline='middle'%3E%3F%3C/text%3E%3C/svg%3E";
 
-// Strips a virtual suffix like '-aero' from 'rover-m-aero' → 'rover-m' so generic icons still work.
 function baseCharacterId(id: string): string {
   if (id.startsWith('rover-m')) return 'rover-m';
   if (id.startsWith('rover-f')) return 'rover-f';
@@ -35,9 +32,7 @@ function getCharacterIcon(id: string): string {
   return defaultIcon;
 }
 
-// Loads the official circular element icons from the gameicons folder
 function getElementIcon(elementName: string): string {
-  // elementName is e.g., 'Aero', 'Electro'. File is e.g., 'aero-icon.png'
   const fileName = `${elementName.toLowerCase()}-icon.png`;
   return (gameIcons[`../assets/gameicons/${fileName}`] as string) || defaultIcon;
 }
@@ -143,7 +138,6 @@ export default function CharacterPicker({
         className="w-full max-w-4xl max-h-[85vh] flex flex-col bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* ===================== STEP 1: CHARACTER GRID ===================== */}
         {!roverStep && (
           <>
             <div className="flex items-center justify-between gap-3 px-5 py-4 border-b border-slate-700/70">
@@ -225,6 +219,10 @@ export default function CharacterPicker({
                         ? selectedCharId.startsWith(`${char.id}-`)
                         : selectedCharId === char.id;
 
+                      // Dynamic border color based on rarity
+                      const rarityBorder = char.rarity === 5 ? 'border-amber-400' : 'border-purple-500';
+                      const selectedRing = isSelected ? 'ring-2 ring-indigo-400 ring-offset-2 ring-offset-slate-900' : '';
+
                       return (
                         <button
                           key={char.id}
@@ -242,10 +240,8 @@ export default function CharacterPicker({
                           title={isRover ? `${char.name} — ${currentEl}` : char.name}
                         >
                           <div
-                            className={`relative w-16 h-16 rounded-full overflow-hidden bg-slate-800 border-2 transition-all ${
-                              isSelected
-                                ? 'border-indigo-400 ring-2 ring-indigo-400/40'
-                                : 'border-slate-600 group-hover:border-slate-400 group-hover:scale-105'
+                            className={`relative w-16 h-16 rounded-full overflow-hidden bg-slate-800 border-2 transition-all ${rarityBorder} ${selectedRing} ${
+                              !isSelected && 'group-hover:scale-105 group-hover:brightness-110'
                             }`}
                           >
                             <img
@@ -287,7 +283,6 @@ export default function CharacterPicker({
           </>
         )}
 
-        {/* ===================== STEP 2: ROVER ELEMENT ===================== */}
         {roverStep && (
           <>
             <div className="flex items-center justify-between gap-3 px-5 py-4 border-b border-slate-700/70">
@@ -343,8 +338,6 @@ export default function CharacterPicker({
 
                 {(['f', 'm'] as RoverGender[]).map((g) => {
                   const isActive = roverStep.gender === g;
-                  // We don't have official gender icons in the screenshot, so we fallback to the text glyphs for now
-                  // Once you have them, we can add them to gameicons/ and map them here.
                   return (
                     <button
                       key={g}

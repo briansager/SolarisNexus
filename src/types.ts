@@ -25,6 +25,7 @@ export type StatWeights = {
 export interface Character {
   id: string;
   name: string;
+  rarity: 4 | 5; // NEW: 4-star or 5-star
   element: string;
   weaponType: string;
   bestWeapon: string;
@@ -36,7 +37,6 @@ export interface Character {
   weights: StatWeights;
 }
 
-// NEW: Rover-specific types (Option Y — Character stays untouched)
 export type RoverGender = 'm' | 'f';
 export type RoverElement = 'Aero' | 'Electro' | 'Havoc' | 'Spectro';
 
@@ -50,7 +50,6 @@ export interface RoverElementVariant {
   weights: StatWeights;
 }
 
-// Keyed by character id ('rover-m' | 'rover-f'), then by element
 export type RoverVariantsMap = {
   [characterId: string]: {
     [E in RoverElement]?: RoverElementVariant;
