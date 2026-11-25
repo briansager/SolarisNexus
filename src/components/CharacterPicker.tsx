@@ -37,13 +37,7 @@ function getElementIcon(elementName: string): string {
   return (gameIcons[`../assets/gameicons/${fileName}`] as string) || defaultIcon;
 }
 
-const ELEMENTS: {
-  name: string;
-  dot: string;
-  text: string;
-  chip: string;
-  chipActive: string;
-}[] = [
+const ELEMENTS = [
   { name: 'Glacio',  dot: 'bg-sky-400',     text: 'text-sky-300',     chip: 'border-sky-500/40 text-sky-200 hover:bg-sky-500/10',           chipActive: 'bg-sky-500/25 border-sky-400 text-sky-100' },
   { name: 'Fusion',  dot: 'bg-orange-400',  text: 'text-orange-300',  chip: 'border-orange-500/40 text-orange-200 hover:bg-orange-500/10',   chipActive: 'bg-orange-500/25 border-orange-400 text-orange-100' },
   { name: 'Electro', dot: 'bg-violet-400',  text: 'text-violet-300',  chip: 'border-violet-500/40 text-violet-200 hover:bg-violet-500/10',   chipActive: 'bg-violet-500/25 border-violet-400 text-violet-100' },
@@ -118,11 +112,32 @@ export default function CharacterPicker({
 
     const all = [...filtered, ...rovers];
 
+    // Sort algorithm: 5-star first, then by name alphabetically
+    const sortChars = (a: typeof all[0], b: typeof all[0]) => {
+      if (a.rarity !== b.rarity) {
+        return b.rarity - a.rarity; // 5 comes before 4
+      }
+      return a.name.localeCompare(b.name);
+    };
+
+    // If "All" is selected, return a single flat grid
+    if (elementFilter === 'All') {
+      const sortedAll = [...all].sort(sortChars);
+      if (sortedAll.length === 0) return [];
+      return [{
+        name: 'All',
+        dot: '',
+        text: 'text-slate-200',
+        characters: sortedAll,
+      }];
+    }
+
+    // Otherwise, only return the specific element group
     return ELEMENTS.map((el) => ({
       ...el,
       characters: all
         .filter((c) => effectiveElement(c.id, c.element) === el.name)
-        .sort((a, b) => a.name.localeCompare(b.name)),
+        .sort(sortChars),
     })).filter((g) => g.characters.length > 0);
   }, [search, elementFilter, roverElements]);
 
@@ -198,15 +213,18 @@ export default function CharacterPicker({
 
               {grouped.map((group) => (
                 <section key={group.name}>
-                  <div className="flex items-center gap-2 mb-3">
-                    <img src={getElementIcon(group.name)} alt="" className="w-4 h-4 rounded-full object-cover" />
-                    <h3 className={`text-xs font-bold uppercase tracking-widest ${group.text}`}>
-                      {group.name}
-                    </h3>
-                    <span className="text-[10px] text-slate-500">
-                      ({group.characters.length})
-                    </span>
-                  </div>
+                  {/* Only show header if a specific element is selected */}
+                  {elementFilter !== 'All' && (
+                    <div className="flex items-center gap-2 mb-3">
+                      <img src={getElementIcon(group.name)} alt="" className="w-4 h-4 rounded-full object-cover" />
+                      <h3 className={`text-xs font-bold uppercase tracking-widest ${group.text}`}>
+                        {group.name}
+                      </h3>
+                      <span className="text-[10px] text-slate-500">
+                        ({group.characters.length})
+                      </span>
+                    </div>
+                  )}
 
                   <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-3">
                     {group.characters.map((char) => {
@@ -219,7 +237,6 @@ export default function CharacterPicker({
                         ? selectedCharId.startsWith(`${char.id}-`)
                         : selectedCharId === char.id;
 
-                      // Dynamic border color based on rarity
                       const rarityBorder = char.rarity === 5 ? 'border-amber-400' : 'border-purple-500';
                       const selectedRing = isSelected ? 'ring-2 ring-indigo-400 ring-offset-2 ring-offset-slate-900' : '';
 
