@@ -1,4 +1,3 @@
-// src/components/BuildScanner.tsx
 import { useState, useRef } from 'react';
 import Tesseract from 'tesseract.js';
 import type { Echo, StatType, SubStat } from '../types';
@@ -24,24 +23,30 @@ export default function BuildScanner({ onComplete, onClose }: BuildScannerProps)
     setError(null);
 
     try {
+      console.log("Starting image processing...");
       const img = new Image();
       img.src = URL.createObjectURL(file);
-      await new Promise((resolve) => { img.onload = resolve; });
+      await new Promise((resolve, reject) => {
+        img.onload = resolve;
+        img.onerror = () => reject(new Error("Failed to load image"));
+      });
 
       // 1. Setup Canvas for Cropping & Color Inversion
       const canvas = document.createElement('canvas');
       const ctx = canvas.getContext('2d');
       if (!ctx) throw new Error("Could not create canvas context");
 
-      // We only care about the bottom 30% of the image where the echoes are
+      // Crop the bottom 30% of the image (where the echoes are)
       const cropHeight = Math.floor(img.height * 0.30);
       const cropY = img.height - cropHeight;
       
-      canvas.width = img.width;
-      canvas.height = cropHeight;
+      // Scale down the image by 50% to save memory and speed up OCR
+      const scale = 0.5;
+      canvas.width = img.width * scale;
+      canvas.height = cropHeight * scale;
 
-      // Draw the cropped portion onto the canvas
-      ctx.drawImage(img, 0, cropY, img.width, cropHeight, 0, 0, img.width, cropHeight);
+      // Draw and scale the cropped portion onto the canvas
+      ctx.drawImage(img, 0, cropY, img.width, cropHeight, 0, 0, canvas.width, canvas.height);
 
       // 2. Invert colors to make background white and text black
       const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
@@ -50,17 +55,18 @@ export default function BuildScanner({ onComplete, onClose }: BuildScannerProps)
         data[i] = 255 - data[i];       // Red
         data[i + 1] = 255 - data[i + 1]; // Green
         data[i + 2] = 255 - data[i + 2]; // Blue
-        // Alpha (data[i + 3]) remains unchanged
       }
       ctx.putImageData(imageData, 0, 0);
 
-      // 3. Convert canvas to a blob for Tesseract
-      const croppedBlob = await new Promise<Blob>((resolve) => {
-        canvas.toBlob((b) => resolve(b!), 'image/png');
-      });
+      // 3. Get Base64 Data URL (more reliable than Blob for Tesseract)
+      const processedImage = canvas.toDataURL('image/png');
+      console.log("Image processed, starting Tesseract...");
 
-      // 4. Run OCR on the processed image
-      const result = await Tesseract.recognize(croppedBlob, 'eng', {
+      // 4. Run OCR with explicit CDN paths (fixes Vercel bundling issues)
+      const result = await Tesseract.recognize(processedImage, 'eng', {
+        workerPath: 'https://cdn.jsdelivr.net/npm/tesseract.js@5.0.0/dist/worker.min.js',
+        corePath: 'https://cdn.jsdelivr.net/npm/tesseract.js-core@5.0.0',
+        langPath: 'https://tessdata.projectnaptha.com/4.0.0',
         logger: (m) => {
           if (m.status === 'recognizing text') {
             setProgress(Math.round(m.progress * 100));
@@ -68,8 +74,9 @@ export default function BuildScanner({ onComplete, onClose }: BuildScannerProps)
         },
       });
 
-      // 5. Parse the spatial data
-      const parsedEchoes = parseSpatialData(result.data, img.width);
+      console.log("OCR Complete. Parsing data...");
+      // 5. Parse the spatial data (using the scaled width)
+      const parsedEchoes = parseSpatialData(result.data, canvas.width);
       
       if (parsedEchoes.length > 0) {
         onComplete(parsedEchoes);
@@ -78,8 +85,8 @@ export default function BuildScanner({ onComplete, onClose }: BuildScannerProps)
       }
 
     } catch (err: any) {
-      console.error("Tesseract Error:", err);
-      setError(`Failed to scan: ${err.message || 'Unknown error'}`);
+      console.error("Tesseract Error Details:", err);
+      setError(`Failed to scan: ${err.message || 'Check browser console for details.'}`);
     } finally {
       setIsScanning(false);
       if (fileInputRef.current) fileInputRef.current.value = '';
