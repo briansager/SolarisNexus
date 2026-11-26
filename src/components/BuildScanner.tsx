@@ -24,14 +24,43 @@ export default function BuildScanner({ onComplete, onClose }: BuildScannerProps)
     setError(null);
 
     try {
-      // 1. Get image dimensions to help calculate the 5 vertical slices
       const img = new Image();
       img.src = URL.createObjectURL(file);
       await new Promise((resolve) => { img.onload = resolve; });
-      const imageWidth = img.width;
 
-      // 2. Run OCR using local Vite worker (fixes CORS/CDN issues)
-      const result = await Tesseract.recognize(file, 'eng', {
+      // 1. Setup Canvas for Cropping & Color Inversion
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      if (!ctx) throw new Error("Could not create canvas context");
+
+      // We only care about the bottom 30% of the image where the echoes are
+      const cropHeight = Math.floor(img.height * 0.30);
+      const cropY = img.height - cropHeight;
+      
+      canvas.width = img.width;
+      canvas.height = cropHeight;
+
+      // Draw the cropped portion onto the canvas
+      ctx.drawImage(img, 0, cropY, img.width, cropHeight, 0, 0, img.width, cropHeight);
+
+      // 2. Invert colors to make background white and text black
+      const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      const data = imageData.data;
+      for (let i = 0; i < data.length; i += 4) {
+        data[i] = 255 - data[i];       // Red
+        data[i + 1] = 255 - data[i + 1]; // Green
+        data[i + 2] = 255 - data[i + 2]; // Blue
+        // Alpha (data[i + 3]) remains unchanged
+      }
+      ctx.putImageData(imageData, 0, 0);
+
+      // 3. Convert canvas to a blob for Tesseract
+      const croppedBlob = await new Promise<Blob>((resolve) => {
+        canvas.toBlob((b) => resolve(b!), 'image/png');
+      });
+
+      // 4. Run OCR on the processed image
+      const result = await Tesseract.recognize(croppedBlob, 'eng', {
         logger: (m) => {
           if (m.status === 'recognizing text') {
             setProgress(Math.round(m.progress * 100));
@@ -39,8 +68,8 @@ export default function BuildScanner({ onComplete, onClose }: BuildScannerProps)
         },
       });
 
-      // 3. Parse the spatial data
-      const parsedEchoes = parseSpatialData(result.data, imageWidth);
+      // 5. Parse the spatial data
+      const parsedEchoes = parseSpatialData(result.data, img.width);
       
       if (parsedEchoes.length > 0) {
         onComplete(parsedEchoes);
@@ -58,7 +87,6 @@ export default function BuildScanner({ onComplete, onClose }: BuildScannerProps)
   };
 
   const parseSpatialData = (data: Tesseract.Page, imageWidth: number): Echo[] => {
-    // Prevent errors if words are missing
     if (!data.words) return [];
 
     const sliceWidth = imageWidth / 5;
@@ -116,7 +144,6 @@ export default function BuildScanner({ onComplete, onClose }: BuildScannerProps)
     };
 
     const fullText = words.join(' ');
-    // Split by common delimiters and camelCase
     const lines = fullText.split(/(?=[A-Z])|(?<=[a-z])(?=[A-Z])|[\n\r]+/); 
 
     let foundMainStat = false;
@@ -129,7 +156,6 @@ export default function BuildScanner({ onComplete, onClose }: BuildScannerProps)
       const value = extractNumber(line);
 
       if (!foundMainStat) {
-        // Ignore numbers that are too large (like HP 2280 on Cost 1s, which is base HP)
         if (value > 1000) continue; 
         mainStat = statType;
         foundMainStat = true;
@@ -179,7 +205,7 @@ export default function BuildScanner({ onComplete, onClose }: BuildScannerProps)
           </div>
           <h3 className="text-lg font-bold text-white">Upload Build Image</h3>
           <p className="text-sm text-slate-400 max-w-sm">
-            Upload the official Wuthering Waves build generator image. The scanner will automatically detect all 5 Echoes and their stats.
+            Upload the official Wuthering Waves build generator image. The scanner will automatically crop and detect all 5 Echoes.
           </p>
 
           <input type="file" accept="image/*" ref={fileInputRef} onChange={handleImageUpload} className="hidden" />
