@@ -47,8 +47,8 @@ export const sonataData: SonataSet[] = [
     fivePiece: 'Glacio DMG +10% after releasing Basic Attack or Heavy Attack. This effect stacks up to 3 times, each stack lasts 15s.'
   },
   {
-    id: 'havoc-eclipse',
-    name: 'Havoc Eclipse',
+    id: 'sun-sinking-eclipse',
+    name: 'Sun-sinking Eclipse',
     twoPiece: 'Havoc DMG +10%.',
     fivePiece: 'Havoc DMG +7.5% after releasing Basic Attack or Heavy Attack. This effect stacks up to 4 times, each stack lasts 15s.'
   },
@@ -143,7 +143,7 @@ export const sonataData: SonataSet[] = [
     fivePiece: 'Upon gaining a Shield, gain 5% increase in Crit. Rate for 5s, max 4 stacks. This effect can be triggered every 0.5s. At max stacks, gain 15% Fusion DMG Bonus.'
   },
   {
-    id: 'heart-of-evil',
+    id: 'heart-of-evils-purge',
     name: 'Heart of Evil\'s Purge',
     twoPiece: 'Aero DMG +10%.',
     fivePiece: 'Inflicting Tune Strain - Shifting increases Crit. DMG by 20% and Aero DMG Bonus by 20% for 15s.'
@@ -172,8 +172,6 @@ export const sonataData: SonataSet[] = [
     twoPiece: 'Glacio DMG +10%.',
     fivePiece: 'Inflicting Glacio Chafe on enemies increases Glacio DMG dealt by 10% for 15s. The Resonator gains the Snowfall effect for 15s, which can be triggered every 25s. Snowfall Effect: Dealing Resonance Liberation DMG removes Snowfall and increases Crit. Rate by 25% for 6s. While the effect is active, dealing Resonance Liberation DMG extends its duration by 4s, triggered once every 0.5s, up to 6 times. Casting Outro Skill removes Snowfall and grants 25% Glacio DMG Bonus to the incoming Resonator for 15s. When Snowfall is removed, only one of the effects above can be triggered.'
   },
-  
-  // New 3.7 Sets
   {
     id: 'flash-of-electric-reflection',
     name: 'Flash of Electric Reflection',
@@ -218,7 +216,7 @@ export const sonataData: SonataSet[] = [
     threePiece: 'Casting Echo Skill grants 30% Heavy Attack DMG Bonus to the caster for 4s. Additionally, all Resonators in the team gain 4% Echo Skill DMG Bonus for 30s, stacking up to 4 times. Echoes of the same name can only trigger this effect once. The record of Echo triggering this effect is cleared along with this effect. At 4 stacks, casting Echo Skill again resets the duration of this effect.'
   },
   {
-    id: 'flamewing',
+    id: 'flamewings-shadow',
     name: 'Flamewing\'s Shadow',
     twoPiece: '',
     fivePiece: '',

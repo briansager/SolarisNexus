@@ -1,9 +1,9 @@
+// src/components/BuildScanner.tsx
 import { useState, useRef } from 'react';
 import Tesseract from 'tesseract.js';
 import type { Echo, StatType, SubStat } from '../types';
 import { echoDatabase } from '../echoData';
 
-// Dynamically load all the new WebP echo icons from your organized folders
 const echoIconModules = import.meta.glob('../assets/echoes/**/*.webp', {
   eager: true,
   import: 'default',
@@ -36,7 +36,6 @@ export default function BuildScanner({ onComplete, onClose }: BuildScannerProps)
         img.onerror = () => reject(new Error("Failed to load image"));
       });
 
-      // 1. Setup Canvas for Cropping & Color Inversion (for OCR)
       const canvas = document.createElement('canvas');
       const ctx = canvas.getContext('2d');
       if (!ctx) throw new Error("Could not create canvas context");
@@ -50,7 +49,6 @@ export default function BuildScanner({ onComplete, onClose }: BuildScannerProps)
 
       ctx.drawImage(img, 0, cropY, img.width, cropHeight, 0, 0, canvas.width, canvas.height);
 
-      // Invert colors for OCR text recognition
       const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
       const data = imageData.data;
       for (let i = 0; i < data.length; i += 4) {
@@ -62,11 +60,7 @@ export default function BuildScanner({ onComplete, onClose }: BuildScannerProps)
 
       const processedImage = canvas.toDataURL('image/png');
 
-      // 2. Run OCR
       const result = await Tesseract.recognize(processedImage, 'eng', {
-        workerPath: '/tesseract/worker.min.js',
-        corePath: '/tesseract/tesseract-core.wasm.js',
-        langPath: 'https://tessdata.projectnaptha.com/4.0.0',
         logger: (m) => {
           if (m.status === 'recognizing text') {
             setProgress(Math.round(m.progress * 100));
@@ -74,7 +68,6 @@ export default function BuildScanner({ onComplete, onClose }: BuildScannerProps)
         },
       });
 
-      // 3. Parse the spatial data & match icons visually
       const parsedEchoes = await parseSpatialData(result.data, canvas.width, img, cropY, cropHeight);
       
       if (parsedEchoes.length > 0) {
@@ -104,7 +97,6 @@ export default function BuildScanner({ onComplete, onClose }: BuildScannerProps)
     const sliceWidth = canvasWidth / 5;
     const columns: string[][] = [[], [], [], [], []];
 
-    // Group words into 5 columns based on X coordinates
     data.words.forEach((word) => {
       const midX = word.bbox.x0 + (word.bbox.x1 - word.bbox.x0) / 2;
       const colIndex = Math.min(Math.floor(midX / sliceWidth), 4);
@@ -118,23 +110,29 @@ export default function BuildScanner({ onComplete, onClose }: BuildScannerProps)
       if (index === 0) expectedCost = 4;
       if (index === 1 || index === 2) expectedCost = 3;
 
-      // 1. Parse the text stats
       const echoData = parseEchoWords(columns[index], expectedCost);
 
-      // 2. Match the icon visually using Image Matching
+      // Match the icon visually
       const matchedIconId = await findMatchingIcon(index, originalImg, cropY, cropHeight);
       
-      echoes.push({
-        ...echoData,
-        iconId: matchedIconId || 'unknown',
-        echoId: matchedIconId || echoData.echoId,
-      });
+      if (matchedIconId) {
+        // If we found a strong visual match, override the text-guessed ID
+        const dbEcho = echoDatabase.find(e => e.id === matchedIconId);
+        echoes.push({
+          ...echoData,
+          iconId: matchedIconId,
+          echoId: matchedIconId,
+          setId: dbEcho?.sonataSets[0] || echoData.setId
+        });
+      } else {
+        // Fallback to the text-guessed ID if no icon match is found
+        echoes.push({ ...echoData, iconId: 'unknown' });
+      }
     }
 
     return echoes;
   };
 
-  // Algorithm to find the visual match for the Echo icon
   const findMatchingIcon = async (
     index: number, 
     img: HTMLImageElement, 
@@ -142,11 +140,12 @@ export default function BuildScanner({ onComplete, onClose }: BuildScannerProps)
     cropHeight: number
   ): Promise<string | null> => {
     const sliceWidth = img.width / 5;
-    const iconSize = Math.floor(img.width * 0.05); 
-    const iconX = index * sliceWidth + (sliceWidth * 0.05);
-    const iconY = cropY + (cropHeight * 0.1);
+    
+    // Adjusted coordinates to safely capture the icon
+    const iconSize = Math.floor(img.width * 0.06); 
+    const iconX = index * sliceWidth + Math.floor(sliceWidth * 0.05);
+    const iconY = cropY + Math.floor(cropHeight * 0.08);
 
-    // Extract the icon from the screenshot to a tiny 16x16 canvas
     const iconCanvas = document.createElement('canvas');
     iconCanvas.width = 16;
     iconCanvas.height = 16;
@@ -159,23 +158,24 @@ export default function BuildScanner({ onComplete, onClose }: BuildScannerProps)
     let bestMatchId: string | null = null;
     let bestDistance = Infinity;
 
-    // Compare against all local icons in the database
     for (const path in echoIconModules) {
-      // Extract ID from path (e.g., "../assets/echoes/common/aero-drake.webp" -> "aero-drake")
       const id = path.split('/').pop()?.replace('.webp', '') || '';
       const dbEcho = echoDatabase.find(e => e.id === id);
       if (!dbEcho) continue; 
 
       const iconSrc = echoIconModules[path] as string;
-      
-      // Load the reference icon and calculate pixel difference
       const distance = await compareImages(iconData, iconSrc);
+      
       if (distance < bestDistance) {
         bestDistance = distance;
         bestMatchId = id;
       }
     }
 
+    // If the best distance is too high, the match is likely bad. 
+    // 3000 is a safe threshold for a 16x16 image difference.
+    if (bestDistance > 3000) return null;
+    
     return bestMatchId;
   };
 
