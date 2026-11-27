@@ -150,8 +150,12 @@ export default function BuildScanner({ onComplete, onClose }: BuildScannerProps)
     let bestDistance = Infinity;
 
     for (const path in echoIconModules) {
-      const match = path.match(/\/([^/]+)\.(webp|png|jpg|jpeg)$/);
-      const id = match ? match[1] : '';
+      const filename = path.split('/').pop() || '';
+      const id = filename
+        .replace(/\.(webp|png|jpg|jpeg)$/i, '')
+        .replace(/_Icon$/i, '')
+        .replace(/_/g, '-')
+        .toLowerCase();
       
       const dbEcho = echoDatabase.find(e => e.id === id);
       if (!dbEcho) continue; 

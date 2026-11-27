@@ -4,7 +4,7 @@ import { sonataData } from '../sonataData';
 import { calculateEchoScore } from '../scoring';
 import HoverSelect from './HoverSelect';
 
-// Glob specifically for the sonata folder and the echoes folder
+// Glob for both folders
 const echoIconModules = import.meta.glob('../assets/echoes/**/*.{webp,png,jpg,jpeg}', { eager: true, import: 'default' });
 const sonataIconModules = import.meta.glob('../assets/sonata/*.{webp,png,jpg,jpeg}', { eager: true, import: 'default' });
 
@@ -30,10 +30,19 @@ export default function EchoCard({ echo, index, character, onChange }: EchoCardP
   const selectedEchoData = echoDatabase.find(e => e.id === echo.echoId);
   const validSonataSets = sonataData.filter(set => selectedEchoData?.sonataSets.includes(set.id));
 
-  // Helper function to find the correct image path
+  // Helper to normalize file names (e.g., "Aero_Drake_Icon.webp" -> "aero-drake")
+  const normalizeName = (path: string) => {
+    const filename = path.split('/').pop() || '';
+    return filename
+      .replace(/\.(webp|png|jpg|jpeg)$/i, '') // Remove extension
+      .replace(/_Icon$/i, '')               // Remove "_Icon" suffix
+      .replace(/_/g, '-')                   // Replace underscores with hyphens
+      .toLowerCase();                       // Lowercase everything
+  };
+
   const findImage = (modules: Record<string, unknown>, id: string) => {
     for (const path in modules) {
-      if (path.endsWith(`/${id}.webp`) || path.endsWith(`/${id}.png`) || path.endsWith(`/${id}.jpg`)) {
+      if (normalizeName(path) === id) {
         return modules[path] as string;
       }
     }
