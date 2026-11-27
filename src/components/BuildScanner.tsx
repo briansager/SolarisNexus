@@ -1,10 +1,9 @@
-// src/components/BuildScanner.tsx
 import { useState, useRef } from 'react';
 import Tesseract from 'tesseract.js';
 import type { Echo, StatType, SubStat } from '../types';
 import { echoDatabase } from '../echoData';
 
-const echoIconModules = import.meta.glob('../assets/echoes/**/*.webp', {
+const echoIconModules = import.meta.glob('../assets/echoes/**/*.{webp,png,jpg}', {
   eager: true,
   import: 'default',
 });
@@ -40,6 +39,7 @@ export default function BuildScanner({ onComplete, onClose }: BuildScannerProps)
       const ctx = canvas.getContext('2d');
       if (!ctx) throw new Error("Could not create canvas context");
 
+      // Extract just the bottom 30% of the image where echoes are
       const cropHeight = Math.floor(img.height * 0.30);
       const cropY = img.height - cropHeight;
       
@@ -49,6 +49,7 @@ export default function BuildScanner({ onComplete, onClose }: BuildScannerProps)
 
       ctx.drawImage(img, 0, cropY, img.width, cropHeight, 0, 0, canvas.width, canvas.height);
 
+      // Invert colors for better text reading
       const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
       const data = imageData.data;
       for (let i = 0; i < data.length; i += 4) {
@@ -77,7 +78,7 @@ export default function BuildScanner({ onComplete, onClose }: BuildScannerProps)
       }
 
     } catch (err: any) {
-      console.error("Tesseract Error Details:", err);
+      console.error("Scanner Error:", err);
       setError(`Failed to scan: ${err.message || 'Check browser console for details.'}`);
     } finally {
       setIsScanning(false);
@@ -112,11 +113,10 @@ export default function BuildScanner({ onComplete, onClose }: BuildScannerProps)
 
       const echoData = parseEchoWords(columns[index], expectedCost);
 
-      // Match the icon visually
+      // Find the icon
       const matchedIconId = await findMatchingIcon(index, originalImg, cropY, cropHeight);
       
       if (matchedIconId) {
-        // If we found a strong visual match, override the text-guessed ID
         const dbEcho = echoDatabase.find(e => e.id === matchedIconId);
         echoes.push({
           ...echoData,
@@ -125,7 +125,6 @@ export default function BuildScanner({ onComplete, onClose }: BuildScannerProps)
           setId: dbEcho?.sonataSets[0] || echoData.setId
         });
       } else {
-        // Fallback to the text-guessed ID if no icon match is found
         echoes.push({ ...echoData, iconId: 'unknown' });
       }
     }
@@ -141,10 +140,10 @@ export default function BuildScanner({ onComplete, onClose }: BuildScannerProps)
   ): Promise<string | null> => {
     const sliceWidth = img.width / 5;
     
-    // Adjusted coordinates to safely capture the icon
-    const iconSize = Math.floor(img.width * 0.06); 
-    const iconX = index * sliceWidth + Math.floor(sliceWidth * 0.05);
-    const iconY = cropY + Math.floor(cropHeight * 0.08);
+    // Safety checks on icon position relative to slice
+    const iconSize = Math.floor(sliceWidth * 0.25); 
+    const iconX = (index * sliceWidth) + Math.floor(sliceWidth * 0.05);
+    const iconY = cropY + Math.floor(cropHeight * 0.05);
 
     const iconCanvas = document.createElement('canvas');
     iconCanvas.width = 16;
@@ -152,6 +151,7 @@ export default function BuildScanner({ onComplete, onClose }: BuildScannerProps)
     const iconCtx = iconCanvas.getContext('2d');
     if (!iconCtx) return null;
     
+    // Draw the cropped icon
     iconCtx.drawImage(img, iconX, iconY, iconSize, iconSize, 0, 0, 16, 16);
     const iconData = iconCtx.getImageData(0, 0, 16, 16).data;
 
@@ -159,7 +159,7 @@ export default function BuildScanner({ onComplete, onClose }: BuildScannerProps)
     let bestDistance = Infinity;
 
     for (const path in echoIconModules) {
-      const id = path.split('/').pop()?.replace('.webp', '') || '';
+      const id = path.split('/').pop()?.replace(/\.(webp|png|jpg)$/, '') || '';
       const dbEcho = echoDatabase.find(e => e.id === id);
       if (!dbEcho) continue; 
 
@@ -172,9 +172,8 @@ export default function BuildScanner({ onComplete, onClose }: BuildScannerProps)
       }
     }
 
-    // If the best distance is too high, the match is likely bad. 
-    // 3000 is a safe threshold for a 16x16 image difference.
-    if (bestDistance > 3000) return null;
+    // Threshold: If distance is > 3500, it's probably a terrible match
+    if (bestDistance > 3500) return null;
     
     return bestMatchId;
   };

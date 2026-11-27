@@ -4,8 +4,8 @@ import { sonataData } from '../sonataData';
 import { calculateEchoScore } from '../scoring';
 import HoverSelect from './HoverSelect';
 
-// Dynamically load all echo icons
-const echoIconModules = import.meta.glob('../assets/echoes/**/*.webp', {
+// Use a broad glob to catch everything in the echoes folder
+const echoIconModules = import.meta.glob('../assets/echoes/**/*.{webp,png,jpg}', {
   eager: true,
   import: 'default',
 });
@@ -33,10 +33,10 @@ export default function EchoCard({ echo, index, character, onChange }: EchoCardP
   const selectedEchoData = echoDatabase.find(e => e.id === echo.echoId);
   const validSonataSets = sonataData.filter(set => selectedEchoData?.sonataSets.includes(set.id));
 
-  // Find the icon source based on echoId
+  // Robust icon lookup
   const getIconSrc = () => {
     for (const path in echoIconModules) {
-      if (path.includes(`/${echo.echoId}.webp`)) {
+      if (path.endsWith(`/${echo.echoId}.webp`) || path.endsWith(`/${echo.echoId}.png`) || path.endsWith(`/${echo.echoId}.jpg`)) {
         return echoIconModules[path] as string;
       }
     }
