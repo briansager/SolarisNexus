@@ -4,15 +4,9 @@ import { sonataData } from '../sonataData';
 import { calculateEchoScore } from '../scoring';
 import HoverSelect from './HoverSelect';
 
-// Glob for both echoes and sonata sets, supporting webp and png
-const echoIconModules = import.meta.glob('../assets/echoes/**/*.{webp,png,jpg,jpeg}', {
-  eager: true,
-  import: 'default',
-});
-const sonataIconModules = import.meta.glob('../assets/sonata/**/*.{webp,png,jpg,jpeg}', {
-  eager: true,
-  import: 'default',
-});
+// Glob specifically for the sonata folder and the echoes folder
+const echoIconModules = import.meta.glob('../assets/echoes/**/*.{webp,png,jpg,jpeg}', { eager: true, import: 'default' });
+const sonataIconModules = import.meta.glob('../assets/sonata/*.{webp,png,jpg,jpeg}', { eager: true, import: 'default' });
 
 const ALL_STATS: StatType[] = [
   'ATK', 'ATK%', 'HP', 'HP%', 'DEF', 'DEF%',
@@ -32,15 +26,14 @@ interface EchoCardProps {
 
 export default function EchoCard({ echo, index, character, onChange }: EchoCardProps) {
   const currentScore = calculateEchoScore(echo, character.weights);
-
   const availableEchoes = echoDatabase.filter(e => e.cost === echo.cost);
   const selectedEchoData = echoDatabase.find(e => e.id === echo.echoId);
   const validSonataSets = sonataData.filter(set => selectedEchoData?.sonataSets.includes(set.id));
 
-  // Helper to find images safely
+  // Helper function to find the correct image path
   const findImage = (modules: Record<string, unknown>, id: string) => {
     for (const path in modules) {
-      if (path.includes(`/${id}.webp`) || path.includes(`/${id}.png`) || path.includes(`/${id}.jpg`)) {
+      if (path.endsWith(`/${id}.webp`) || path.endsWith(`/${id}.png`) || path.endsWith(`/${id}.jpg`)) {
         return modules[path] as string;
       }
     }
@@ -161,16 +154,21 @@ export default function EchoCard({ echo, index, character, onChange }: EchoCardP
 
         {/* SONATA SELECTION */}
         <div className="bg-[#151923] p-4 rounded-lg border border-slate-700/50 flex flex-col gap-3">
-          <div>
-            <label className="text-[10px] text-slate-500 font-bold uppercase tracking-widest block mb-2">Sonata Effect</label>
-            <HoverSelect value={echo.setId} options={setOptions} onChange={(val) => onChange(index, { ...echo, setId: val })} className="text-indigo-200" />
+          <div className="flex items-center justify-between">
+            <label className="text-[10px] text-slate-500 font-bold uppercase tracking-widest block">Sonata Effect</label>
+            {sonataIconSrc && (
+               <div className="w-6 h-6 rounded-full overflow-hidden border border-slate-700 opacity-80">
+                 <img src={sonataIconSrc} alt="Sonata Icon" className="w-full h-full object-cover" />
+               </div>
+            )}
           </div>
+          <HoverSelect value={echo.setId} options={setOptions} onChange={(val) => onChange(index, { ...echo, setId: val })} className="text-indigo-200" />
           
           {/* Sonata Icon Quick-Picker */}
           {validSonataSets.length > 1 && (
-            <div>
+            <div className="mt-2">
               <label className="text-[10px] text-slate-500 font-bold uppercase tracking-widest block mb-2">Available Sets</label>
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap gap-3">
                 {validSonataSets.map((set) => {
                   const setIcon = findImage(sonataIconModules, set.id);
                   const isSelected = echo.setId === set.id;
@@ -179,13 +177,13 @@ export default function EchoCard({ echo, index, character, onChange }: EchoCardP
                       key={set.id}
                       onClick={() => onChange(index, { ...echo, setId: set.id })}
                       title={set.name}
-                      className={`w-10 h-10 rounded-full border-2 overflow-hidden transition-all flex-shrink-0
-                        ${isSelected ? 'border-indigo-400 scale-110 shadow-[0_0_10px_rgba(99,102,241,0.4)]' : 'border-slate-700 opacity-60 hover:opacity-100 hover:scale-105'}`}
+                      className={`w-10 h-10 rounded-full border-2 overflow-hidden transition-all flex-shrink-0 flex items-center justify-center bg-slate-800
+                        ${isSelected ? 'border-indigo-400 scale-110 shadow-[0_0_10px_rgba(99,102,241,0.4)] opacity-100' : 'border-slate-700 opacity-50 hover:opacity-100 hover:scale-105'}`}
                     >
                       {setIcon ? (
                         <img src={setIcon} alt={set.name} className="w-full h-full object-cover" />
                       ) : (
-                        <span className="text-[10px] text-slate-400 flex items-center justify-center w-full h-full bg-slate-800">?</span>
+                        <span className="text-[10px] text-slate-400 font-bold">{set.name.charAt(0)}</span>
                       )}
                     </button>
                   );

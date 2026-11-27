@@ -3,10 +3,7 @@ import Tesseract from 'tesseract.js';
 import type { Echo, StatType, SubStat } from '../types';
 import { echoDatabase } from '../echoData';
 
-const echoIconModules = import.meta.glob('../assets/echoes/**/*.{webp,png,jpg,jpeg}', {
-  eager: true,
-  import: 'default',
-});
+const echoIconModules = import.meta.glob('../assets/echoes/**/*.{webp,png,jpg,jpeg}', { eager: true, import: 'default' });
 
 interface BuildScannerProps {
   onComplete: (echoes: Echo[]) => void;
@@ -153,7 +150,6 @@ export default function BuildScanner({ onComplete, onClose }: BuildScannerProps)
     let bestDistance = Infinity;
 
     for (const path in echoIconModules) {
-      // Robust matching for the ID
       const match = path.match(/\/([^/]+)\.(webp|png|jpg|jpeg)$/);
       const id = match ? match[1] : '';
       

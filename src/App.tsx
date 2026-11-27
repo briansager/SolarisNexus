@@ -10,29 +10,19 @@ import CharacterPicker from './components/CharacterPicker';
 import BuildScanner from './components/BuildScanner';
 import logoImage from './assets/logo.png';
 
-// Safely load grade icons regardless of exact file placement/capitalization
-const gradeIconModules = import.meta.glob('./assets/**/*.{png,jpg,jpeg,webp}', {
-  eager: true,
-  import: 'default',
-});
+const gradeIconModules = import.meta.glob('./assets/**/*.{png,jpg,jpeg,webp}', { eager: true, import: 'default' });
 
 function getGradeIcon(filename: string): string {
-  // Try to find the file in the assets folder
   for (const key in gradeIconModules) {
     if (key.endsWith(`/${filename}`) || key.endsWith(`\\${filename}`)) {
       return gradeIconModules[key] as string;
     }
   }
-  // Fallback if not found (prevents Vercel crashes)
   return "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext x='50' y='50' font-family='sans-serif' font-size='20' fill='%2364748b' text-anchor='middle' dominant-baseline='middle'%3EN/A%3C/text%3E%3C/svg%3E";
 }
 
-const icons = import.meta.glob('./assets/*-icon.{png,jpg,jpeg,webp}', {
-  eager: true,
-  import: 'default',
-});
-const defaultIcon =
-  "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%231e293b'/%3E%3Ctext x='50' y='50' font-family='sans-serif' font-size='40' fill='%2364748b' text-anchor='middle' dominant-baseline='middle'%3E%3F%3C/text%3E%3C/svg%3E";
+const icons = import.meta.glob('./assets/*-icon.{png,jpg,jpeg,webp}', { eager: true, import: 'default' });
+const defaultIcon = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%231e293b'/%3E%3Ctext x='50' y='50' font-family='sans-serif' font-size='40' fill='%2364748b' text-anchor='middle' dominant-baseline='middle'%3E%3F%3C/text%3E%3C/svg%3E";
 
 function baseCharacterId(id: string): string {
   if (id.startsWith('rover-m')) return 'rover-m';
@@ -54,8 +44,7 @@ function resolveCharacter(virtualId: string): Character {
   const roverMatch = virtualId.match(/^(rover-[mf])-(\w+)$/);
   if (roverMatch) {
     const [, baseId, elementRaw] = roverMatch;
-    const element = (elementRaw.charAt(0).toUpperCase() +
-      elementRaw.slice(1)) as RoverElement;
+    const element = (elementRaw.charAt(0).toUpperCase() + elementRaw.slice(1)) as RoverElement;
     const base = charactersData.find((c) => c.id === baseId);
     const variant = roverVariants[baseId]?.[element];
     if (base && variant) {
@@ -72,9 +61,7 @@ function resolveCharacter(virtualId: string): Character {
       };
     }
   }
-  return (
-    charactersData.find((c) => c.id === virtualId) || charactersData[0]
-  );
+  return charactersData.find((c) => c.id === virtualId) || charactersData[0];
 }
 
 const generateSubStats = () => [
@@ -111,8 +98,7 @@ function App() {
     const m = id.match(/^(rover-[mf])-(\w+)$/);
     if (m) {
       const [, baseId, elementRaw] = m;
-      const element = (elementRaw.charAt(0).toUpperCase() +
-        elementRaw.slice(1)) as RoverElement;
+      const element = (elementRaw.charAt(0).toUpperCase() + elementRaw.slice(1)) as RoverElement;
       setRoverElements((prev) => ({ ...prev, [baseId]: element }));
     }
     setSelectedCharId(id);
@@ -121,8 +107,6 @@ function App() {
   const totalScore = calculateBuildScore(echoes, currentCharacter.weights);
   const activeSets = getActiveSonataSets(echoes);
   const tier = getScoreTier(totalScore);
-  
-  // Resolve the image dynamically
   const gradeIconSrc = getGradeIcon(tier.icon);
 
   const handleEchoChange = (index: number, newEcho: Echo) => {
@@ -138,7 +122,6 @@ function App() {
 
   return (
     <div className="min-h-screen bg-slate-900 text-slate-200 font-sans selection:bg-indigo-500/30 flex flex-col">
-      {/* ============ TOP NAVBAR ============ */}
       <header className="sticky top-0 z-40 border-b border-slate-800 bg-slate-900/95 backdrop-blur">
         <div className="mx-auto flex h-16 w-full max-w-6xl items-center justify-between px-4 md:px-6">
           <a href="/" className="flex items-center" aria-label="Solaris Nexus home">
@@ -164,23 +147,15 @@ function App() {
             >
               Import Build
             </button>
-            <a
-              href="/about"
-              className="rounded-md px-3 py-2 text-sm font-medium text-slate-300 hover:text-slate-100 hover:bg-slate-800/50 transition-colors"
-            >
+            <a href="/about" className="rounded-md px-3 py-2 text-sm font-medium text-slate-300 hover:text-slate-100 hover:bg-slate-800/50 transition-colors">
               About
             </a>
-            <a
-              href="/login"
-              className="rounded-md px-3 py-2 text-sm font-medium text-slate-300 hover:text-slate-100 hover:bg-slate-800/50 transition-colors"
-            >
+            <a href="/login" className="rounded-md px-3 py-2 text-sm font-medium text-slate-300 hover:text-slate-100 hover:bg-slate-800/50 transition-colors">
               Login
             </a>
 
             <div className="relative ml-1">
-              <label htmlFor="language-select" className="sr-only">
-                Language
-              </label>
+              <label htmlFor="language-select" className="sr-only">Language</label>
               <select
                 id="language-select"
                 defaultValue="en"
@@ -191,17 +166,8 @@ function App() {
                 <option value="zh">ZH</option>
                 <option value="ko">KO</option>
               </select>
-              <svg
-                className="pointer-events-none absolute right-2 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400"
-                viewBox="0 0 20 20"
-                fill="currentColor"
-                aria-hidden="true"
-              >
-                <path
-                  fillRule="evenodd"
-                  d="M5.23 7.21a.75.75 0 011.06.02L10 11.17l3.71-3.94a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z"
-                  clipRule="evenodd"
-                />
+              <svg className="pointer-events-none absolute right-2 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                <path fillRule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.17l3.71-3.94a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clipRule="evenodd" />
               </svg>
             </div>
           </nav>
