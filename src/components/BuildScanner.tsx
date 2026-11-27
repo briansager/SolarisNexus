@@ -3,7 +3,7 @@ import Tesseract from 'tesseract.js';
 import type { Echo, StatType, SubStat } from '../types';
 import { echoDatabase } from '../echoData';
 
-const echoIconModules = import.meta.glob('../assets/echoes/**/*.{webp,png,jpg}', {
+const echoIconModules = import.meta.glob('../assets/echoes/**/*.{webp,png,jpg,jpeg}', {
   eager: true,
   import: 'default',
 });
@@ -39,7 +39,6 @@ export default function BuildScanner({ onComplete, onClose }: BuildScannerProps)
       const ctx = canvas.getContext('2d');
       if (!ctx) throw new Error("Could not create canvas context");
 
-      // Extract just the bottom 30% of the image where echoes are
       const cropHeight = Math.floor(img.height * 0.30);
       const cropY = img.height - cropHeight;
       
@@ -49,7 +48,6 @@ export default function BuildScanner({ onComplete, onClose }: BuildScannerProps)
 
       ctx.drawImage(img, 0, cropY, img.width, cropHeight, 0, 0, canvas.width, canvas.height);
 
-      // Invert colors for better text reading
       const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
       const data = imageData.data;
       for (let i = 0; i < data.length; i += 4) {
@@ -113,7 +111,6 @@ export default function BuildScanner({ onComplete, onClose }: BuildScannerProps)
 
       const echoData = parseEchoWords(columns[index], expectedCost);
 
-      // Find the icon
       const matchedIconId = await findMatchingIcon(index, originalImg, cropY, cropHeight);
       
       if (matchedIconId) {
@@ -139,8 +136,6 @@ export default function BuildScanner({ onComplete, onClose }: BuildScannerProps)
     cropHeight: number
   ): Promise<string | null> => {
     const sliceWidth = img.width / 5;
-    
-    // Safety checks on icon position relative to slice
     const iconSize = Math.floor(sliceWidth * 0.25); 
     const iconX = (index * sliceWidth) + Math.floor(sliceWidth * 0.05);
     const iconY = cropY + Math.floor(cropHeight * 0.05);
@@ -151,7 +146,6 @@ export default function BuildScanner({ onComplete, onClose }: BuildScannerProps)
     const iconCtx = iconCanvas.getContext('2d');
     if (!iconCtx) return null;
     
-    // Draw the cropped icon
     iconCtx.drawImage(img, iconX, iconY, iconSize, iconSize, 0, 0, 16, 16);
     const iconData = iconCtx.getImageData(0, 0, 16, 16).data;
 
@@ -159,7 +153,10 @@ export default function BuildScanner({ onComplete, onClose }: BuildScannerProps)
     let bestDistance = Infinity;
 
     for (const path in echoIconModules) {
-      const id = path.split('/').pop()?.replace(/\.(webp|png|jpg)$/, '') || '';
+      // Robust matching for the ID
+      const match = path.match(/\/([^/]+)\.(webp|png|jpg|jpeg)$/);
+      const id = match ? match[1] : '';
+      
       const dbEcho = echoDatabase.find(e => e.id === id);
       if (!dbEcho) continue; 
 
@@ -172,7 +169,6 @@ export default function BuildScanner({ onComplete, onClose }: BuildScannerProps)
       }
     }
 
-    // Threshold: If distance is > 3500, it's probably a terrible match
     if (bestDistance > 3500) return null;
     
     return bestMatchId;
