@@ -1,9 +1,14 @@
-// src/components/EchoCard.tsx
 import type { Echo, StatType, SubStat, Character } from '../types';
 import { echoDatabase } from '../echoData';
 import { sonataData } from '../sonataData';
 import { calculateEchoScore } from '../scoring';
 import HoverSelect from './HoverSelect';
+
+// Dynamically load all echo icons
+const echoIconModules = import.meta.glob('../assets/echoes/**/*.webp', {
+  eager: true,
+  import: 'default',
+});
 
 const ALL_STATS: StatType[] = [
   'ATK', 'ATK%', 'HP', 'HP%', 'DEF', 'DEF%',
@@ -27,6 +32,17 @@ export default function EchoCard({ echo, index, character, onChange }: EchoCardP
   const availableEchoes = echoDatabase.filter(e => e.cost === echo.cost);
   const selectedEchoData = echoDatabase.find(e => e.id === echo.echoId);
   const validSonataSets = sonataData.filter(set => selectedEchoData?.sonataSets.includes(set.id));
+
+  // Find the icon source based on echoId
+  const getIconSrc = () => {
+    for (const path in echoIconModules) {
+      if (path.includes(`/${echo.echoId}.webp`)) {
+        return echoIconModules[path] as string;
+      }
+    }
+    return null;
+  };
+  const iconSrc = getIconSrc();
 
   const handleCostChange = (newCostStr: string) => {
     const newCost = Number(newCostStr) as 1 | 3 | 4;
@@ -72,13 +88,24 @@ export default function EchoCard({ echo, index, character, onChange }: EchoCardP
     <div className="bg-[#1a1f2e] rounded-xl border border-slate-700/50 shadow-2xl overflow-hidden flex flex-col h-full">
       
       <div className="bg-[#232938] p-4 border-b border-slate-700/50 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div>
-          <h2 className="text-lg font-bold text-amber-100 flex items-center gap-2">
-            <span className="bg-amber-900/50 text-amber-200 px-2 py-0.5 rounded text-xs border border-amber-700/50">
-              COST {echo.cost}
-            </span>
-            {selectedEchoData?.name}
-          </h2>
+        <div className="flex items-center gap-3">
+          {iconSrc ? (
+            <div className="w-12 h-12 rounded-full bg-slate-900 border border-slate-700 overflow-hidden flex-shrink-0">
+              <img src={iconSrc} alt={selectedEchoData?.name} className="w-full h-full object-cover" />
+            </div>
+          ) : (
+            <div className="w-12 h-12 rounded-full bg-slate-900 border border-slate-700 flex items-center justify-center flex-shrink-0 text-slate-500 text-xs">
+              ?
+            </div>
+          )}
+          <div>
+            <h2 className="text-lg font-bold text-amber-100 flex items-center gap-2">
+              <span className="bg-amber-900/50 text-amber-200 px-2 py-0.5 rounded text-xs border border-amber-700/50">
+                COST {echo.cost}
+              </span>
+              {selectedEchoData?.name}
+            </h2>
+          </div>
         </div>
         
         <div className="text-right border-l border-slate-600/50 pl-4">

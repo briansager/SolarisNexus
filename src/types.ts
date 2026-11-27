@@ -11,6 +11,7 @@ export interface SubStat {
 
 export interface Echo {
   echoId: string;
+  iconId?: string; // NEW: Tracks the visual icon match
   cost: 1 | 3 | 4;
   setId: string;
   mainStat: StatType;
@@ -25,7 +26,7 @@ export type StatWeights = {
 export interface Character {
   id: string;
   name: string;
-  rarity: 4 | 5; // NEW: 4-star or 5-star
+  rarity: 4 | 5;
   element: string;
   weaponType: string;
   bestWeapon: string;
