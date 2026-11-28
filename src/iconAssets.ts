@@ -69,6 +69,11 @@ const sonataModules = import.meta.glob<string>('./assets/sonata/**/*.{webp,png,j
 export const echoAssets = buildAssetIndex(echoModules, echoDatabase.map(echo => echo.id), {
   // Database: Devotee's Flesh; repository: Devotee_Flesh_Icon.png.
   'devotees-flesh': 'devotee-flesh',
+  // Verified standard elite filenames differ from their canonical database IDs.
+  'hoochief': 'hoochief-cyclone',
+  'pilgrims-shell': 'pilgrim-shell',
+  'reminiscence-kronaclaw': 'kronaclaw',
+  'viridblaze-saurian': 'echo-viridblaze-saurian',
 });
 export const sonataAssets = buildAssetIndex(sonataModules, sonataData.map(set => set.id));
 
