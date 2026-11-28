@@ -3,7 +3,8 @@ import Tesseract from 'tesseract.js';
 import type { Echo, StatType, SubStat } from '../types';
 import { echoDatabase } from '../echoData';
 
-const echoIconModules = import.meta.glob('../assets/echoes/**/*.{webp,png,jpg,jpeg}', { eager: true, import: 'default' });
+import { loadEchoTemplates, loadScannerImage, matchEchoTemplate } from '../scannerTemplates';
+import type { ScannerTemplate } from '../scannerTemplates';
 
 interface BuildScannerProps {
   onComplete: (echoes: Echo[]) => void;
@@ -25,12 +26,13 @@ export default function BuildScanner({ onComplete, onClose }: BuildScannerProps)
     setError(null);
 
     try {
-      const img = new Image();
-      img.src = URL.createObjectURL(file);
-      await new Promise((resolve, reject) => {
-        img.onload = resolve;
-        img.onerror = () => reject(new Error("Failed to load image"));
-      });
+      const imageUrl = URL.createObjectURL(file);
+      let img: HTMLImageElement;
+      try {
+        img = await loadScannerImage(imageUrl);
+      } finally {
+        URL.revokeObjectURL(imageUrl);
+      }
 
       const canvas = document.createElement('canvas');
       const ctx = canvas.getContext('2d');
@@ -72,9 +74,9 @@ export default function BuildScanner({ onComplete, onClose }: BuildScannerProps)
         setError("Could not detect Echo stats. Try a clearer screenshot.");
       }
 
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Scanner Error:", err);
-      setError(`Failed to scan: ${err.message || 'Check browser console for details.'}`);
+      setError(`Failed to scan: ${err instanceof Error ? err.message : 'Check browser console for details.'}`);
     } finally {
       setIsScanning(false);
       if (fileInputRef.current) fileInputRef.current.value = '';
@@ -100,6 +102,7 @@ export default function BuildScanner({ onComplete, onClose }: BuildScannerProps)
     });
 
     const echoes: Echo[] = [];
+    const templates = await loadEchoTemplates();
 
     for (let index = 0; index < 5; index++) {
       let expectedCost: 1 | 3 | 4 = 1;
@@ -108,15 +111,15 @@ export default function BuildScanner({ onComplete, onClose }: BuildScannerProps)
 
       const echoData = parseEchoWords(columns[index], expectedCost);
 
-      const matchedIconId = await findMatchingIcon(index, originalImg, cropY, cropHeight);
+      const matchedIconId = findMatchingIcon(index, originalImg, cropY, cropHeight, templates, expectedCost);
       
-      if (matchedIconId) {
-        const dbEcho = echoDatabase.find(e => e.id === matchedIconId);
+      const dbEcho = echoDatabase.find(e => e.id === matchedIconId);
+      if (matchedIconId && dbEcho) {
         echoes.push({
           ...echoData,
           iconId: matchedIconId,
           echoId: matchedIconId,
-          setId: dbEcho?.sonataSets[0] || echoData.setId
+          setId: dbEcho.sonataSets[0] || echoData.setId
         });
       } else {
         echoes.push({ ...echoData, iconId: 'unknown' });
@@ -126,12 +129,14 @@ export default function BuildScanner({ onComplete, onClose }: BuildScannerProps)
     return echoes;
   };
 
-  const findMatchingIcon = async (
+  const findMatchingIcon = (
     index: number, 
     img: HTMLImageElement, 
     cropY: number, 
-    cropHeight: number
-  ): Promise<string | null> => {
+    cropHeight: number,
+    templates: readonly ScannerTemplate[],
+    expectedCost: 1 | 3 | 4,
+  ): string | null => {
     const sliceWidth = img.width / 5;
     const iconSize = Math.floor(sliceWidth * 0.25); 
     const iconX = (index * sliceWidth) + Math.floor(sliceWidth * 0.05);
@@ -146,58 +151,7 @@ export default function BuildScanner({ onComplete, onClose }: BuildScannerProps)
     iconCtx.drawImage(img, iconX, iconY, iconSize, iconSize, 0, 0, 16, 16);
     const iconData = iconCtx.getImageData(0, 0, 16, 16).data;
 
-    let bestMatchId: string | null = null;
-    let bestDistance = Infinity;
-
-    for (const path in echoIconModules) {
-      const filename = path.split('/').pop() || '';
-      const id = filename
-        .replace(/\.(webp|png|jpg|jpeg)$/i, '')
-        .replace(/_Icon$/i, '')
-        .replace(/_/g, '-')
-        .toLowerCase();
-      
-      const dbEcho = echoDatabase.find(e => e.id === id);
-      if (!dbEcho) continue; 
-
-      const iconSrc = echoIconModules[path] as string;
-      const distance = await compareImages(iconData, iconSrc);
-      
-      if (distance < bestDistance) {
-        bestDistance = distance;
-        bestMatchId = id;
-      }
-    }
-
-    if (bestDistance > 3500) return null;
-    
-    return bestMatchId;
-  };
-
-  const compareImages = (sourceData: Uint8ClampedArray, targetSrc: string): Promise<number> => {
-    return new Promise((resolve) => {
-      const img = new Image();
-      img.src = targetSrc;
-      img.onload = () => {
-        const canvas = document.createElement('canvas');
-        canvas.width = 16;
-        canvas.height = 16;
-        const ctx = canvas.getContext('2d');
-        if (!ctx) return resolve(Infinity);
-        
-        ctx.drawImage(img, 0, 0, 16, 16);
-        const targetData = ctx.getImageData(0, 0, 16, 16).data;
-
-        let diff = 0;
-        for (let i = 0; i < sourceData.length; i += 4) {
-          diff += Math.abs(sourceData[i] - targetData[i]);
-          diff += Math.abs(sourceData[i + 1] - targetData[i + 1]);
-          diff += Math.abs(sourceData[i + 2] - targetData[i + 2]);
-        }
-        resolve(diff);
-      };
-      img.onerror = () => resolve(Infinity);
-    });
+    return matchEchoTemplate(iconData, templates, expectedCost);
   };
 
   const parseEchoWords = (words: string[], expectedCost: 1 | 3 | 4): Echo => {

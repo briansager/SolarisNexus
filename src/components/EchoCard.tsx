@@ -4,9 +4,7 @@ import { sonataData } from '../sonataData';
 import { calculateEchoScore } from '../scoring';
 import HoverSelect from './HoverSelect';
 
-// Glob for both folders
-const echoIconModules = import.meta.glob('../assets/echoes/**/*.{webp,png,jpg,jpeg}', { eager: true, import: 'default' });
-const sonataIconModules = import.meta.glob('../assets/sonata/*.{webp,png,jpg,jpeg}', { eager: true, import: 'default' });
+import { getEchoIcon, getSonataIcon } from '../iconAssets';
 
 const ALL_STATS: StatType[] = [
   'ATK', 'ATK%', 'HP', 'HP%', 'DEF', 'DEF%',
@@ -30,27 +28,8 @@ export default function EchoCard({ echo, index, character, onChange }: EchoCardP
   const selectedEchoData = echoDatabase.find(e => e.id === echo.echoId);
   const validSonataSets = sonataData.filter(set => selectedEchoData?.sonataSets.includes(set.id));
 
-  // Helper to normalize file names (e.g., "Aero_Drake_Icon.webp" -> "aero-drake")
-  const normalizeName = (path: string) => {
-    const filename = path.split('/').pop() || '';
-    return filename
-      .replace(/\.(webp|png|jpg|jpeg)$/i, '') // Remove extension
-      .replace(/_Icon$/i, '')               // Remove "_Icon" suffix
-      .replace(/_/g, '-')                   // Replace underscores with hyphens
-      .toLowerCase();                       // Lowercase everything
-  };
-
-  const findImage = (modules: Record<string, unknown>, id: string) => {
-    for (const path in modules) {
-      if (normalizeName(path) === id) {
-        return modules[path] as string;
-      }
-    }
-    return null;
-  };
-
-  const echoIconSrc = findImage(echoIconModules, echo.echoId);
-  const sonataIconSrc = findImage(sonataIconModules, echo.setId);
+  const echoIconSrc = getEchoIcon(echo.echoId);
+  const sonataIconSrc = getSonataIcon(echo.setId);
 
   const handleCostChange = (newCostStr: string) => {
     const newCost = Number(newCostStr) as 1 | 3 | 4;
@@ -179,7 +158,7 @@ export default function EchoCard({ echo, index, character, onChange }: EchoCardP
               <label className="text-[10px] text-slate-500 font-bold uppercase tracking-widest block mb-2">Available Sets</label>
               <div className="flex flex-wrap gap-3">
                 {validSonataSets.map((set) => {
-                  const setIcon = findImage(sonataIconModules, set.id);
+                  const setIcon = getSonataIcon(set.id);
                   const isSelected = echo.setId === set.id;
                   return (
                     <button
